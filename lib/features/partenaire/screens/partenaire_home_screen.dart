@@ -1,0 +1,42 @@
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../../models/partenaire.dart';
+import '../widgets/nouvelle_commande_partenaire_tab.dart';
+import '../widgets/stock_stats_tab.dart';
+import '../widgets/suivi_partenaire_tab.dart';
+
+class PartenaireHomeScreen extends StatelessWidget {
+  final Partenaire partenaire;
+  const PartenaireHomeScreen({super.key, required this.partenaire});
+
+  @override
+  Widget build(BuildContext context) {
+    return DefaultTabController(
+      length: 3,
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(partenaire.nom),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () => context.go('/partenaire'),
+          ),
+          bottom: const TabBar(
+            tabs: [
+              Tab(text: 'Nouvelle commande', icon: Icon(Icons.add_shopping_cart_outlined)),
+              Tab(text: 'Suivi', icon: Icon(Icons.local_shipping_outlined)),
+              Tab(text: 'Stock', icon: Icon(Icons.inventory_2_outlined)),
+            ],
+          ),
+        ),
+        body: TabBarView(
+          children: [
+            NouvelleCommandePartenaireTab(partenaire: partenaire),
+            SuiviPartenaireTab(partenaire: partenaire),
+            StockStatsTab(partenaire: partenaire),
+          ],
+        ),
+      ),
+    );
+  }
+}
