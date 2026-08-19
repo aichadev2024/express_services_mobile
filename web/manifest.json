@@ -1,11 +1,11 @@
 {
-    "name": "express_services_mobile",
-    "short_name": "express_services_mobile",
+    "name": "Express Services Mali",
+    "short_name": "Express Services",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#0D2149",
+    "theme_color": "#E11D48",
+    "description": "Plateforme de gestion de livraison et logistique Express Services Mali.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
