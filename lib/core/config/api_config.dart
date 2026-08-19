@@ -4,7 +4,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 class ApiConfig {
   static const String _defaultUrl = String.fromEnvironment(
     'API_BASE_URL',
-    defaultValue: 'http://localhost:8080',
+    defaultValue: 'https://express-services-backend.onrender.com',
   );
 
   static const _storageKey = 'custom_api_base_url';
@@ -14,6 +14,7 @@ class ApiConfig {
 
   /// Candidate URLs for automatic fallback attempt when primary fails
   static final List<String> candidateUrls = [
+    'https://express-services-backend.onrender.com',
     'http://localhost:8080',
     'http://172.20.14.187:8080',
     'http://10.0.2.2:8080',
