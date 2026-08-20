@@ -156,25 +156,51 @@ class _NouvelleCommandeParticulierTabState
             children: const [
               Icon(Icons.check_circle, color: AppColors.success, size: 28),
               SizedBox(width: 10),
-              Text('Commande Enregistrée'),
+              Expanded(
+                child: Text(
+                  'Commande Enregistrée',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+              ),
             ],
           ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Votre demande de livraison #${commande.id} a été créée avec succès.'),
-              const SizedBox(height: 10),
-              Text(
-                'Montant à régler à la livraison : ${formatFcfa(_quartierLivraison?.tarifLivraison ?? 0)}',
-                style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.navy),
-              ),
-              const SizedBox(height: 6),
-              const Text(
-                'Un livreur prendra en charge votre colis incessamment.',
-                style: TextStyle(fontSize: 13, color: Color(0xFF64748B)),
-              ),
-            ],
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Votre demande de livraison #${commande.id} a été créée avec succès.',
+                  style: const TextStyle(fontSize: 14),
+                ),
+                const SizedBox(height: 10),
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF1F5F9),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: const Color(0xFFCBD5E1)),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.payments, size: 18, color: AppColors.navy),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Montant à régler : ${formatFcfa(_quartierLivraison?.tarifLivraison ?? 0)}',
+                          style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.navy, fontSize: 13),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 10),
+                const Text(
+                  'Un livreur prendra en charge votre colis incessamment.',
+                  style: TextStyle(fontSize: 13, color: Color(0xFF64748B)),
+                ),
+              ],
+            ),
           ),
           actions: [
             ElevatedButton(
