@@ -123,13 +123,14 @@ class _NouvelleCommandeParticulierTabState
       final telFinal = _destinataireTelCtrl.text.trim();
 
       final String detailRamassage = isEnvoi
-          ? "📍 RAMASSAGE CHEZ EXPÉDITEUR : ${_expediteurNomCtrl.text.trim()} (Tél: ${_expediteurTelCtrl.text.trim()}) - Adresse: ${_expediteurAdresseCtrl.text.trim()}"
-          : "📍 RÉCUPÉRATION CHEZ VENDEUR/PROCHE : ${_expediteurNomCtrl.text.trim()} (Tél: ${_expediteurTelCtrl.text.trim()}) - Quartier: ${_expediteurQuartierCtrl.text.trim()} - Adresse: ${_expediteurAdresseCtrl.text.trim()}";
+          ? "📍 RAMASSAGE GRATUIT CHEZ EXPÉDITEUR : ${_expediteurNomCtrl.text.trim()} (Tél: ${_expediteurTelCtrl.text.trim()}) - Adresse: ${_expediteurAdresseCtrl.text.trim()}"
+          : "📍 RÉCUPÉRATION GRATUITE CHEZ VENDEUR/PROCHE : ${_expediteurNomCtrl.text.trim()} (Tél: ${_expediteurTelCtrl.text.trim()}) - Quartier: ${_expediteurQuartierCtrl.text.trim()} - Adresse: ${_expediteurAdresseCtrl.text.trim()}";
 
       final String fullDescription =
           "[MODE: ${isEnvoi ? 'ENVOI DE COLIS' : 'RÉCUPÉRATION DE COLIS'}]\n"
           "📦 ARTICLE: ${_descriptionCtrl.text.trim()}\n"
-          "💳 TARIF LIVRAISON: ${formatFcfa(_quartierLivraison!.tarifLivraison)}\n"
+          "💳 DEPLACEMENT RAMASSAGE: GRATUIT (0 FCFA)\n"
+          "💳 TARIF LIVRAISON DESTINATION: ${formatFcfa(_quartierLivraison!.tarifLivraison)}\n"
           "$detailRamassage";
 
       final commande = await ref.read(commandeRepositoryProvider).creerCommande(
@@ -165,11 +166,13 @@ class _NouvelleCommandeParticulierTabState
             children: [
               Text('Votre demande de livraison #${commande.id} a été créée avec succès.'),
               const SizedBox(height: 10),
+              const Text('💡 Ramassage du colis : GRATUIT (0 FCFA)', style: TextStyle(color: AppColors.success, fontSize: 13)),
+              const SizedBox(height: 4),
               Text(
-                'Montant à régler à la livraison : ${formatFcfa(_quartierLivraison?.tarifLivraison ?? 0)}',
+                'Montant livraison destination : ${formatFcfa(_quartierLivraison?.tarifLivraison ?? 0)}',
                 style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.navy),
               ),
-              const SizedBox(height: 6),
+              const SizedBox(height: 8),
               const Text(
                 'Un livreur prendra en charge votre colis incessamment.',
                 style: TextStyle(fontSize: 13, color: Color(0xFF64748B)),
@@ -362,14 +365,27 @@ class _NouvelleCommandeParticulierTabState
                     children: [
                       const Icon(Icons.location_on, color: AppColors.primaryAccent, size: 22),
                       const SizedBox(width: 8),
-                      Text(
-                        isEnvoi
-                            ? "📍 Point de Ramassage (Chez vous / Expéditeur)"
-                            : "📍 Point de Ramassage (Vendeur / Origine)",
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                          color: AppColors.primary,
+                      Expanded(
+                        child: Text(
+                          isEnvoi
+                              ? "📍 Point de Ramassage (Chez vous / Expéditeur)"
+                              : "📍 Point de Ramassage (Vendeur / Origine)",
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                            color: AppColors.primary,
+                          ),
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: AppColors.success.withOpacity(0.15),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Text(
+                          '🎁 GRATUIT',
+                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.success),
                         ),
                       ),
                     ],
@@ -488,7 +504,7 @@ class _NouvelleCommandeParticulierTabState
                     data: (quartiers) => DropdownButtonFormField<Quartier>(
                       initialValue: _quartierLivraison,
                       decoration: const InputDecoration(
-                        labelText: 'Quartier de livraison',
+                        labelText: 'Quartier de livraison (Facturé)',
                         prefixIcon: Icon(Icons.location_city),
                       ),
                       items: quartiers
@@ -573,38 +589,61 @@ class _NouvelleCommandeParticulierTabState
             color: const Color(0xFFF1F5F9),
             child: Padding(
               padding: const EdgeInsets.all(16),
-              child: Row(
+              child: Column(
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: AppColors.navy,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: const Icon(Icons.payments_outlined, color: Colors.white, size: 24),
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: AppColors.navy,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Icon(Icons.payments_outlined, color: Colors.white, size: 24),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              "Tarif total de livraison",
+                              style: TextStyle(fontSize: 12, color: Color(0xFF64748B), fontWeight: FontWeight.w500),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              _quartierLivraison != null
+                                  ? formatFcfa(_quartierLivraison!.tarifLivraison)
+                                  : "Sélectionnez un quartier",
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.navy,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          "Tarif de livraison estimé",
-                          style: TextStyle(fontSize: 12, color: Color(0xFF64748B), fontWeight: FontWeight.w500),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          _quartierLivraison != null
-                              ? formatFcfa(_quartierLivraison!.tarifLivraison)
-                              : "Sélectionnez un quartier",
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.navy,
-                          ),
-                        ),
-                      ],
-                    ),
+                  const Divider(height: 24),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: const [
+                      Text('🚚 Déplacement pour ramassage :', style: TextStyle(fontSize: 12.5, color: Color(0xFF64748B))),
+                      Text('GRATUIT (0 FCFA)', style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: AppColors.success)),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('📍 Trajet vers quartier destination :', style: TextStyle(fontSize: 12.5, color: Color(0xFF64748B))),
+                      Text(
+                        _quartierLivraison != null ? formatFcfa(_quartierLivraison!.tarifLivraison) : '0 FCFA',
+                        style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: AppColors.navy),
+                      ),
+                    ],
                   ),
                 ],
               ),
