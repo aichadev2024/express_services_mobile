@@ -70,13 +70,14 @@ class _NouvelleCommandeParticulierTabState
       }
       if (permission == LocationPermission.denied ||
           permission == LocationPermission.deniedForever) {
-        throw Exception("Permission de localisation refusée");
+        throw Exception("Permission de géolocalisation refusée.");
       }
-      if (!await Geolocator.isLocationServiceEnabled()) {
-        throw Exception("Le service de localisation est désactivé");
-      }
+      
       final position = await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(accuracy: LocationAccuracy.medium),
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.medium,
+          timeLimit: Duration(seconds: 10),
+        ),
       );
       setState(() {
         _lat = position.latitude;
@@ -85,7 +86,7 @@ class _NouvelleCommandeParticulierTabState
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Position GPS capturée avec succès !'),
+            content: Text('📍 Position GPS enregistrée avec succès !'),
             backgroundColor: AppColors.success,
           ),
         );
@@ -93,7 +94,10 @@ class _NouvelleCommandeParticulierTabState
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Position indisponible : $e')),
+          SnackBar(
+            content: Text('Géolocalisation : $e. Vous pouvez continuer avec l\'adresse précise.'),
+            backgroundColor: AppColors.warning,
+          ),
         );
       }
     } finally {
@@ -105,7 +109,7 @@ class _NouvelleCommandeParticulierTabState
     if (!_formKey.currentState!.validate()) return;
     if (_quartierLivraison == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Choisissez un quartier de livraison')),
+        const SnackBar(content: Text('Veuillez sélectionner un quartier de livraison')),
       );
       return;
     }
@@ -115,12 +119,8 @@ class _NouvelleCommandeParticulierTabState
     try {
       final isEnvoi = _mode == ModeCommandeParticulier.envoi;
 
-      final nomFinal = isEnvoi
-          ? _destinataireNomCtrl.text.trim()
-          : _destinataireNomCtrl.text.trim();
-      final telFinal = isEnvoi
-          ? _destinataireTelCtrl.text.trim()
-          : _destinataireTelCtrl.text.trim();
+      final nomFinal = _destinataireNomCtrl.text.trim();
+      final telFinal = _destinataireTelCtrl.text.trim();
 
       final String detailRamassage = isEnvoi
           ? "📍 RAMASSAGE CHEZ EXPÉDITEUR : ${_expediteurNomCtrl.text.trim()} (Tél: ${_expediteurTelCtrl.text.trim()}) - Adresse: ${_expediteurAdresseCtrl.text.trim()}"
@@ -129,6 +129,7 @@ class _NouvelleCommandeParticulierTabState
       final String fullDescription =
           "[MODE: ${isEnvoi ? 'ENVOI DE COLIS' : 'RÉCUPÉRATION DE COLIS'}]\n"
           "📦 ARTICLE: ${_descriptionCtrl.text.trim()}\n"
+          "💳 TARIF LIVRAISON: ${formatFcfa(_quartierLivraison!.tarifLivraison)}\n"
           "$detailRamassage";
 
       final commande = await ref.read(commandeRepositoryProvider).creerCommande(
@@ -162,10 +163,15 @@ class _NouvelleCommandeParticulierTabState
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Votre demande de livraison #${commande.id} a été soumise avec succès.'),
+              Text('Votre demande de livraison #${commande.id} a été créée avec succès.'),
               const SizedBox(height: 10),
+              Text(
+                'Montant à régler à la livraison : ${formatFcfa(_quartierLivraison?.tarifLivraison ?? 0)}',
+                style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.navy),
+              ),
+              const SizedBox(height: 6),
               const Text(
-                'Un livreur vous contactera dans les plus brefs délais.',
+                'Un livreur prendra en charge votre colis incessamment.',
                 style: TextStyle(fontSize: 13, color: Color(0xFF64748B)),
               ),
             ],
@@ -204,6 +210,55 @@ class _NouvelleCommandeParticulierTabState
       _lat = null;
       _lng = null;
     });
+  }
+
+  Widget _buildGpsWidget() {
+    if (_lat != null && _lng != null) {
+      return Container(
+        margin: const EdgeInsets.only(top: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: const Color(0xFFECFDF5),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: const Color(0xFFA7F3D0)),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.my_location, color: AppColors.success, size: 18),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                'Position GPS activée : ${_lat!.toStringAsFixed(4)}, ${_lng!.toStringAsFixed(4)}',
+                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF065F46)),
+              ),
+            ),
+            IconButton(
+              icon: const Icon(Icons.close, size: 16, color: Color(0xFF065F46)),
+              onPressed: () => setState(() {
+                _lat = null;
+                _lng = null;
+              }),
+              tooltip: 'Effacer la position GPS',
+            ),
+          ],
+        ),
+      );
+    }
+
+    return OutlinedButton.icon(
+      onPressed: _locating ? null : _useCurrentLocation,
+      style: OutlinedButton.styleFrom(
+        foregroundColor: AppColors.navy,
+        side: const BorderSide(color: AppColors.navy),
+      ),
+      icon: _locating
+          ? const SizedBox(
+              height: 16,
+              width: 16,
+              child: CircularProgressIndicator(strokeWidth: 2))
+          : const Icon(Icons.my_location),
+      label: Text(_locating ? 'Recherche du signal GPS...' : 'Joindre ma position GPS actuelle'),
+    );
   }
 
   @override
@@ -360,22 +415,7 @@ class _NouvelleCommandeParticulierTabState
                   ),
                   if (isEnvoi) ...[
                     const SizedBox(height: 10),
-                    OutlinedButton.icon(
-                      onPressed: _locating ? null : _useCurrentLocation,
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: AppColors.primary,
-                        side: const BorderSide(color: AppColors.primary),
-                      ),
-                      icon: _locating
-                          ? const SizedBox(
-                              height: 16,
-                              width: 16,
-                              child: CircularProgressIndicator(strokeWidth: 2))
-                          : const Icon(Icons.my_location),
-                      label: Text(_lat != null
-                          ? 'Position GPS enregistrée (${_lat!.toStringAsFixed(4)}, ${_lng!.toStringAsFixed(4)})'
-                          : 'Joindre ma position GPS actuelle'),
-                    ),
+                    _buildGpsWidget(),
                   ],
                 ],
               ),
@@ -471,22 +511,7 @@ class _NouvelleCommandeParticulierTabState
                   ),
                   if (!isEnvoi) ...[
                     const SizedBox(height: 10),
-                    OutlinedButton.icon(
-                      onPressed: _locating ? null : _useCurrentLocation,
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: AppColors.primary,
-                        side: const BorderSide(color: AppColors.primary),
-                      ),
-                      icon: _locating
-                          ? const SizedBox(
-                              height: 16,
-                              width: 16,
-                              child: CircularProgressIndicator(strokeWidth: 2))
-                          : const Icon(Icons.my_location),
-                      label: Text(_lat != null
-                          ? 'Position GPS enregistrée (${_lat!.toStringAsFixed(4)}, ${_lng!.toStringAsFixed(4)})'
-                          : 'Joindre ma position GPS actuelle'),
-                    ),
+                    _buildGpsWidget(),
                   ],
                 ],
               ),
@@ -530,6 +555,56 @@ class _NouvelleCommandeParticulierTabState
                       alignLabelWithHint: true,
                     ),
                     validator: (v) => (v == null || v.trim().isEmpty) ? 'Champ requis' : null,
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 16),
+
+          // Section 4: Récapitulatif du Tarif de Livraison
+          Card(
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+              side: const BorderSide(color: AppColors.primary, width: 1.5),
+            ),
+            color: const Color(0xFFF1F5F9),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: AppColors.navy,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(Icons.payments_outlined, color: Colors.white, size: 24),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          "Tarif de livraison estimé",
+                          style: TextStyle(fontSize: 12, color: Color(0xFF64748B), fontWeight: FontWeight.w500),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          _quartierLivraison != null
+                              ? formatFcfa(_quartierLivraison!.tarifLivraison)
+                              : "Sélectionnez un quartier",
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.navy,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
