@@ -30,6 +30,7 @@ class _NouvelleCommandePartenaireTabState
   final _adresseCtrl = TextEditingController();
 
   final Map<int, int> _quantites = {};
+  final Map<int, TextEditingController> _prixCtrls = {};
   Quartier? _quartier;
   double? _lat;
   double? _lng;
@@ -43,6 +44,9 @@ class _NouvelleCommandePartenaireTabState
     _telCtrl.dispose();
     _emailCtrl.dispose();
     _adresseCtrl.dispose();
+    for (var ctrl in _prixCtrls.values) {
+      ctrl.dispose();
+    }
     super.dispose();
   }
 
@@ -93,14 +97,25 @@ class _NouvelleCommandePartenaireTabState
 
     setState(() => _submitting = true);
     try {
+      final lignesPayload = lignes.map((e) {
+        final customPrixStr = _prixCtrls[e.key]?.text.trim() ?? '';
+        final customPrix = double.tryParse(customPrixStr);
+        final payload = <String, dynamic>{
+          'produitId': e.key,
+          'quantite': e.value,
+        };
+        if (customPrix != null && customPrix > 0) {
+          payload['prixUnitaire'] = customPrix;
+        }
+        return payload;
+      }).toList();
+
       final commande = await ref.read(commandeRepositoryProvider).creerCommande(
             CommandeRequest(
               nomClient: _nomCtrl.text.trim(),
               telephoneClient: _telCtrl.text.trim(),
               emailClient: _emailCtrl.text.trim(),
-              lignesProduits: lignes
-                  .map((e) => {'produitId': e.key, 'quantite': e.value})
-                  .toList(),
+              lignesProduits: lignesPayload,
               quartierId: _quartier!.id,
               adressePrecise: _adresseCtrl.text.trim(),
               latitude: _lat,
@@ -138,6 +153,10 @@ class _NouvelleCommandePartenaireTabState
     _telCtrl.clear();
     _emailCtrl.clear();
     _adresseCtrl.clear();
+    for (var ctrl in _prixCtrls.values) {
+      ctrl.dispose();
+    }
+    _prixCtrls.clear();
     setState(() {
       _quantites.clear();
       _quartier = null;
@@ -176,27 +195,78 @@ class _NouvelleCommandePartenaireTabState
                 child: Column(
                   children: produits.map((produit) {
                     final qty = _quantites[produit.id] ?? 0;
-                    return ListTile(
-                      title: Text(produit.nom),
-                      subtitle: Text('${formatFcfa(produit.prix)} · Stock : ${produit.stock}'),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
+                    if (!_prixCtrls.containsKey(produit.id)) {
+                      _prixCtrls[produit.id] = TextEditingController(
+                        text: produit.prix.toStringAsFixed(0),
+                      );
+                    }
+                    final ctrl = _prixCtrls[produit.id]!;
+
+                    return Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      decoration: const BoxDecoration(
+                        border: Border(bottom: BorderSide(color: Color(0xFFF1F5F9))),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          IconButton(
-                            icon: const Icon(Icons.remove_circle_outline),
-                            onPressed: qty > 0
-                                ? () => setState(() => _quantites[produit.id] = qty - 1)
-                                : null,
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(produit.nom, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                                    const SizedBox(height: 2),
+                                    Text('Stock disponible : ${produit.stock}', style: const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+                                  ],
+                                ),
+                              ),
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  IconButton(
+                                    icon: const Icon(Icons.remove_circle_outline),
+                                    onPressed: qty > 0
+                                        ? () => setState(() => _quantites[produit.id] = qty - 1)
+                                        : null,
+                                  ),
+                                  SizedBox(
+                                      width: 24,
+                                      child: Text('$qty', textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.bold))),
+                                  IconButton(
+                                    icon: const Icon(Icons.add_circle_outline),
+                                    onPressed: qty < produit.stock
+                                        ? () => setState(() => _quantites[produit.id] = qty + 1)
+                                        : null,
+                                  ),
+                                ],
+                              ),
+                            ],
                           ),
-                          SizedBox(
-                              width: 24,
-                              child: Text('$qty', textAlign: TextAlign.center)),
-                          IconButton(
-                            icon: const Icon(Icons.add_circle_outline),
-                            onPressed: qty < produit.stock
-                                ? () => setState(() => _quantites[produit.id] = qty + 1)
-                                : null,
-                          ),
+                          if (qty > 0) ...[
+                            const SizedBox(height: 8),
+                            Row(
+                              children: [
+                                const Text('Prix unitaire : ', style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600)),
+                                const SizedBox(width: 8),
+                                SizedBox(
+                                  width: 140,
+                                  child: TextFormField(
+                                    controller: ctrl,
+                                    keyboardType: TextInputType.number,
+                                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                                    decoration: const InputDecoration(
+                                      isDense: true,
+                                      contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                                      suffixText: 'FCFA',
+                                      border: OutlineInputBorder(),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
                         ],
                       ),
                     );
