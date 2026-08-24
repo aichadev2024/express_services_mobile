@@ -33,6 +33,7 @@ class _NouvelleCommandePartenaireTabState
   Quartier? _quartier;
   double? _lat;
   double? _lng;
+  bool _livraisonGratuite = false;
   bool _locating = false;
   bool _submitting = false;
 
@@ -105,6 +106,7 @@ class _NouvelleCommandePartenaireTabState
               latitude: _lat,
               longitude: _lng,
               partenaireId: widget.partenaire.id,
+              livraisonGratuite: _livraisonGratuite,
             ),
           );
       if (!mounted) return;
@@ -141,6 +143,7 @@ class _NouvelleCommandePartenaireTabState
       _quartier = null;
       _lat = null;
       _lng = null;
+      _livraisonGratuite = false;
     });
   }
 
@@ -240,6 +243,18 @@ class _NouvelleCommandePartenaireTabState
                   .toList(),
               onChanged: (v) => setState(() => _quartier = v),
             ),
+          ),
+          const SizedBox(height: 8),
+          CheckboxListTile(
+            value: _livraisonGratuite,
+            onChanged: (v) => setState(() => _livraisonGratuite = v ?? false),
+            title: const Text('Offrir la livraison au client (Livraison Gratuite)',
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+            subtitle: const Text('0 FCFA de frais de livraison facturés au client',
+                style: TextStyle(fontSize: 11.5, color: AppColors.success)),
+            controlAffinity: ListTileControlAffinity.leading,
+            contentPadding: EdgeInsets.zero,
+            dense: true,
           ),
           const SizedBox(height: 12),
           TextFormField(

@@ -28,6 +28,7 @@ class LigneProduit {
   Map<String, dynamic> toRequestJson() => {
         'produitId': produitId,
         'quantite': quantite,
+        if (prixUnitaire != null) 'prixUnitaire': prixUnitaire,
       };
 }
 
@@ -56,6 +57,9 @@ class Commande {
   final String? partenaireNom;
   final String? descriptionArticle;
   final String? motifAnnulation;
+  final bool? livraisonGratuite;
+  final double? tarifLivraisonEffective;
+  final double? montantAEncaisser;
 
   const Commande({
     required this.id,
@@ -82,6 +86,9 @@ class Commande {
     this.partenaireNom,
     this.descriptionArticle,
     this.motifAnnulation,
+    this.livraisonGratuite,
+    this.tarifLivraisonEffective,
+    this.montantAEncaisser,
   });
 
   factory Commande.fromJson(Map<String, dynamic> json) {
@@ -116,6 +123,9 @@ class Commande {
       partenaireNom: json['partenaireNom'] as String?,
       descriptionArticle: json['descriptionArticle'] as String?,
       motifAnnulation: json['motifAnnulation'] as String?,
+      livraisonGratuite: json['livraisonGratuite'] as bool?,
+      tarifLivraisonEffective: (json['tarifLivraisonEffective'] as num?)?.toDouble(),
+      montantAEncaisser: (json['montantAEncaisser'] as num?)?.toDouble(),
     );
   }
 }

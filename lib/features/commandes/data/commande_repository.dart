@@ -18,6 +18,7 @@ class CommandeRequest {
   final DateTime? dateHeureSouhaitee;
   final int? partenaireId;
   final String? descriptionArticle;
+  final bool? livraisonGratuite;
 
   const CommandeRequest({
     required this.nomClient,
@@ -31,6 +32,7 @@ class CommandeRequest {
     this.dateHeureSouhaitee,
     this.partenaireId,
     this.descriptionArticle,
+    this.livraisonGratuite,
   });
 
   Map<String, dynamic> toJson() => {
@@ -47,6 +49,7 @@ class CommandeRequest {
         if (partenaireId != null) 'partenaireId': partenaireId,
         if (descriptionArticle != null && descriptionArticle!.isNotEmpty)
           'descriptionArticle': descriptionArticle,
+        if (livraisonGratuite != null) 'livraisonGratuite': livraisonGratuite,
       };
 }
 
