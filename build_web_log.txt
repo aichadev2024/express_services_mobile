@@ -1,0 +1,246 @@
+﻿Compiling lib\main.dart for the Web...                          
+flutter.bat : Wasm dry 
+run succeeded. 
+Consider building and 
+testing your 
+application with the 
+`--wasm` flag. See 
+docs for more info: htt
+ps://docs.flutter.dev/p
+latform-integration/web
+/wasm
+Au caractère Ligne:1 : 
+5
++ & { & flutter build 
+web --release 2>&1 | 
+Out-File -Encoding 
+utf8 buil ...
++     ~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~
+    + CategoryInfo     
+         : NotSpecifi  
+  ed: (Wasm dry run    
+ su...ration/web/wa    
+sm:String) [], Rem    
+oteException
+    + FullyQualifiedEr 
+   rorId : NativeComm  
+  andError
+ 
+Use --no-wasm-dry-run 
+to disable these 
+warnings.
+Target dart2js failed: 
+ProcessException: 
+Process exited 
+abnormally with exit 
+code 1:
+lib/features/particulie
+r/widgets/nouvelle_comm
+ande_particulier_tab.da
+rt:145:32:
+Error: The getter 
+'telFinal' isn't 
+defined for the type '_
+NouvelleCommandeParticu
+lierTabState'.
+ - '_NouvelleCommandePa
+rticulierTabState' is 
+from 'package:express_s
+ervices_mobile/features
+/particulier/widgets/no
+uvelle_commande_particu
+lier_tab.dart' ('lib/fe
+atures/particulier/widg
+ets/nouvelle_commande_p
+articulier_tab.dart').
+              
+telephoneClient: 
+telFinal,
+                       
+        ^^^^^^^^
+Error: Compilation 
+failed.
+  Command: C:\src\flutt
+er_windows_3.35.7-stabl
+e\flutter\bin\cache\dar
+t-sdk\bin\dart.exe 
+compile js --platform-b
+inaries=C:\src\flutter_
+windows_3.35.7-stable\f
+lutter\bin\cache\flutte
+r_web_sdk\kernel 
+--invoker=flutter_tool 
+-Ddart.vm.product=true 
+-DFLUTTER_VERSION=3.35.
+7 -DFLUTTER_CHANNEL=sta
+ble -DFLUTTER_GIT_URL=h
+ttps://github.com/flutt
+er/flutter.git -DFLUTTE
+R_FRAMEWORK_REVISION=ad
+c9010625 -DFLUTTER_ENGI
+NE_REVISION=035316565a 
+-DFLUTTER_DART_VERSION=
+3.9.2 -DFLUTTER_WEB_USE
+_SKIA=true -DFLUTTER_WE
+B_USE_SKWASM=false -DFL
+UTTER_WEB_CANVASKIT_URL
+=https://www.gstatic.co
+m/flutter-canvaskit/035
+316565ad77281a75305515e
+4682e6c4c6f7ca/ --nativ
+e-null-assertions 
+--no-source-maps -O4 
+--minify -o 
+C:\DEV\Expresse service
+\express_services_mobil
+e\.dart_tool\flutter_bu
+ild\f4179b91c5238e0348a
+4fe70d73aeb30\app.dill 
+--packages=C:\DEV\Expre
+sse service\express_ser
+vices_mobile\.dart_tool
+\package_config.json 
+--cfe-only 
+C:\DEV\Expresse service
+\express_services_mobil
+e\.dart_tool\flutter_bu
+ild\f4179b91c5238e0348a
+4fe70d73aeb30\main.dart
+#0      RunResult.throw
+Exception (package:flut
+ter_tools/src/base/proc
+ess.dart:118:5)
+#1      _DefaultProcess
+Utils.run (package:flut
+ter_tools/src/base/proc
+ess.dart:344:19)
+<asynchronous 
+suspension>
+#2      
+Dart2JSTarget.build (pa
+ckage:flutter_tools/src
+/build_system/targets/w
+eb.dart:204:5)
+<asynchronous 
+suspension>
+#3      _BuildInstance.
+_invokeInternal (packag
+e:flutter_tools/src/bui
+ld_system/build_system.
+dart:873:9)
+<asynchronous 
+suspension>
+#4      
+Future.wait.<anonymous 
+closure> (dart:async/fu
+ture.dart:525:21)
+<asynchronous 
+suspension>
+#5      _BuildInstance.
+invokeTarget (package:f
+lutter_tools/src/build_
+system/build_system.dar
+t:811:32)
+<asynchronous 
+suspension>
+#6      
+Future.wait.<anonymous 
+closure> (dart:async/fu
+ture.dart:525:21)
+<asynchronous 
+suspension>
+#7      _BuildInstance.
+invokeTarget (package:f
+lutter_tools/src/build_
+system/build_system.dar
+t:811:32)
+<asynchronous 
+suspension>
+#8      FlutterBuildSys
+tem.build (package:flut
+ter_tools/src/build_sys
+tem/build_system.dart:6
+31:16)
+<asynchronous 
+suspension>
+#9      
+WebBuilder.buildWeb (pa
+ckage:flutter_tools/src
+/web/compile.dart:90:34
+)
+<asynchronous 
+suspension>
+#10     BuildWebCommand
+.runCommand (package:fl
+utter_tools/src/command
+s/build_web.dart:282:5)
+<asynchronous 
+suspension>
+#11     FlutterCommand.
+run.<anonymous 
+closure> (package:flutt
+er_tools/src/runner/flu
+tter_command.dart:1581:
+27)
+<asynchronous 
+suspension>
+#12     AppContext.run.
+<anonymous closure> (pa
+ckage:flutter_tools/src
+/base/context.dart:154:
+19)
+<asynchronous 
+suspension>
+#13     CommandRunner.r
+unCommand (package:args
+/command_runner.dart:21
+2:13)
+<asynchronous 
+suspension>
+#14     FlutterCommandR
+unner.runCommand.<anony
+mous closure> (package:
+flutter_tools/src/runne
+r/flutter_command_runne
+r.dart:503:9)
+<asynchronous 
+suspension>
+#15     AppContext.run.
+<anonymous closure> (pa
+ckage:flutter_tools/src
+/base/context.dart:154:
+19)
+<asynchronous 
+suspension>
+#16     FlutterCommandR
+unner.runCommand (packa
+ge:flutter_tools/src/ru
+nner/flutter_command_ru
+nner.dart:438:5)
+<asynchronous 
+suspension>
+#17     run.<anonymous 
+closure>.<anonymous 
+closure> (package:flutt
+er_tools/runner.dart:98
+:11)
+<asynchronous 
+suspension>
+#18     AppContext.run.
+<anonymous closure> (pa
+ckage:flutter_tools/src
+/base/context.dart:154:
+19)
+<asynchronous 
+suspension>
+#19     main (package:f
+lutter_tools/executable
+.dart:101:3)
+<asynchronous 
+suspension>
+
+Compiling lib\main.dart for the Web...                             15,2s
+Error: Failed to 
+compile application 
+for the Web.
