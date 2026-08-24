@@ -216,6 +216,87 @@ class _CommandeDetailScreenState extends ConsumerState<CommandeDetailScreen> {
           ],
         ),
         const SizedBox(height: 12),
+        // Carte d'encaissement prioritaire pour le livreur
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: const Color(0xFF0F172A),
+            borderRadius: BorderRadius.circular(14),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.1),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Row(
+                    children: [
+                      Icon(Icons.payments_outlined, color: AppColors.primary, size: 22),
+                      SizedBox(width: 8),
+                      Text(
+                        'MONTANT À ENCAISSER',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w800,
+                          fontSize: 12.5,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (commande.livraisonGratuite == true)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: AppColors.success.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: AppColors.success.withValues(alpha: 0.5)),
+                      ),
+                      child: const Text(
+                        'Livraison Gratuite',
+                        style: TextStyle(color: AppColors.success, fontSize: 11, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Text(
+                formatFcfa(commande.montantAEncaisser ?? commande.montantTotal),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w900,
+                  fontSize: 24,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Row(
+                children: [
+                  Text(
+                    'Marchandises : ${formatFcfa(commande.montantProduits)}',
+                    style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 11.5),
+                  ),
+                  const Text('  •  ', style: TextStyle(color: Color(0xFF64748B))),
+                  Text(
+                    'Livraison : ${commande.livraisonGratuite == true ? "OFFERTE (0 FCFA)" : formatFcfa(commande.tarifLivraisonEffective ?? commande.tarifLivraison)}',
+                    style: TextStyle(
+                      color: commande.livraisonGratuite == true ? AppColors.success : const Color(0xFF94A3B8),
+                      fontSize: 11.5,
+                      fontWeight: commande.livraisonGratuite == true ? FontWeight.bold : FontWeight.normal,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
         _SectionCard(
           title: 'Article(s)',
           children: [
@@ -242,7 +323,7 @@ class _CommandeDetailScreenState extends ConsumerState<CommandeDetailScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('Total', style: TextStyle(fontWeight: FontWeight.w700)),
+                const Text('Total Commande', style: TextStyle(fontWeight: FontWeight.w700)),
                 Text(formatFcfa(commande.montantTotal),
                     style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
               ],

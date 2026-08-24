@@ -100,8 +100,16 @@ class CommandeCard extends StatelessWidget {
                 children: [
                   Text(formatDateTime(commande.dateCreation),
                       style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 11.5)),
-                  Text(formatFcfa(commande.montantTotal),
-                      style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text('À encaisser : ${formatFcfa(commande.montantAEncaisser ?? commande.montantTotal)}',
+                          style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13.5, color: AppColors.navy)),
+                      if (commande.livraisonGratuite == true)
+                        const Text('Livraison Gratuite',
+                            style: TextStyle(color: AppColors.success, fontSize: 10.5, fontWeight: FontWeight.bold)),
+                    ],
+                  ),
                 ],
               ),
             ],
