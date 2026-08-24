@@ -38,8 +38,9 @@ class _NouvelleCommandeParticulierTabState
   final _emailCtrl = TextEditingController();
   final _destinataireAdresseCtrl = TextEditingController();
 
-  // Champ Description du colis
+  // Champ Description & Prix du colis
   final _descriptionCtrl = TextEditingController();
+  final _prixColisCtrl = TextEditingController();
 
   Quartier? _quartierLivraison;
   double? _lat;
@@ -58,6 +59,7 @@ class _NouvelleCommandeParticulierTabState
     _emailCtrl.dispose();
     _destinataireAdresseCtrl.dispose();
     _descriptionCtrl.dispose();
+    _prixColisCtrl.dispose();
     super.dispose();
   }
 
@@ -121,15 +123,21 @@ class _NouvelleCommandeParticulierTabState
 
       final nomFinal = _destinataireNomCtrl.text.trim();
       final telFinal = _destinataireTelCtrl.text.trim();
+      final prixColisStr = _prixColisCtrl.text.trim();
+      final double prixColis = double.tryParse(prixColisStr) ?? 0.0;
 
       final String detailRamassage = isEnvoi
           ? "📍 RAMASSAGE CHEZ EXPÉDITEUR : ${_expediteurNomCtrl.text.trim()} (Tél: ${_expediteurTelCtrl.text.trim()}) - Adresse: ${_expediteurAdresseCtrl.text.trim()}"
           : "📍 RÉCUPÉRATION CHEZ VENDEUR/PROCHE : ${_expediteurNomCtrl.text.trim()} (Tél: ${_expediteurTelCtrl.text.trim()}) - Quartier: ${_expediteurQuartierCtrl.text.trim()} - Adresse: ${_expediteurAdresseCtrl.text.trim()}";
 
+      final String detailPrixMarchandise = prixColis > 0
+          ? "💰 PRIX MARCHANDISE À ENCAISSER: ${formatFcfa(prixColis)}\n💳 TOTAL À PERCEVOIR PAR LE LIVREUR: ${formatFcfa(prixColis + _quartierLivraison!.tarifLivraison)}\n"
+          : "💳 TOTAL À PERCEVOIR (Frais livraison): ${formatFcfa(_quartierLivraison!.tarifLivraison)}\n";
+
       final String fullDescription =
           "[MODE: ${isEnvoi ? 'ENVOI DE COLIS' : 'RÉCUPÉRATION DE COLIS'}]\n"
           "📦 ARTICLE: ${_descriptionCtrl.text.trim()}\n"
-          "💳 TARIF LIVRAISON: ${formatFcfa(_quartierLivraison!.tarifLivraison)}\n"
+          "$detailPrixMarchandise"
           "$detailRamassage";
 
       final commande = await ref.read(commandeRepositoryProvider).creerCommande(
@@ -577,12 +585,23 @@ class _NouvelleCommandeParticulierTabState
                   const SizedBox(height: 12),
                   TextFormField(
                     controller: _descriptionCtrl,
-                    maxLines: 3,
+                    maxLines: 2,
                     decoration: const InputDecoration(
                       labelText: 'Décrivez l\'article à livrer (ex: Sac de vêtements, Clés, Documents...)',
                       alignLabelWithHint: true,
                     ),
                     validator: (v) => (v == null || v.trim().isEmpty) ? 'Champ requis' : null,
+                  ),
+                  const SizedBox(height: 10),
+                  TextFormField(
+                    controller: _prixColisCtrl,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: 'Prix de la marchandise à encaisser (optionnel)',
+                      hintText: 'Saisissez 0 si l\'article est déjà payé',
+                      prefixIcon: Icon(Icons.payments_outlined),
+                      suffixText: 'FCFA',
+                    ),
                   ),
                 ],
               ),
