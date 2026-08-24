@@ -342,7 +342,58 @@ class _NouvelleCommandePartenaireTabState
                 ? 'Position enregistrée (${_lat!.toStringAsFixed(4)}, ${_lng!.toStringAsFixed(4)})'
                 : 'Joindre ma position GPS (optionnel)'),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
+          // Banner récapitulatif du Montant à Encaisser par le livreur
+          Builder(
+            builder: (context) {
+              double totalProduits = 0;
+              _quantites.forEach((produitId, qty) {
+                if (qty > 0) {
+                  final customPrixStr = _prixCtrls[produitId]?.text.trim() ?? '0';
+                  final customPrix = double.tryParse(customPrixStr) ?? 0;
+                  totalProduits += (customPrix * qty);
+                }
+              });
+              final double tarifLivraisonEffectif = _livraisonGratuite ? 0 : (_quartier?.tarifLivraison ?? 0);
+              final double totalAEncaisser = totalProduits + tarifLivraisonEffectif;
+
+              return Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF0F172A),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text('Total marchandises :', style: TextStyle(color: Colors.white70, fontSize: 13)),
+                        Text(formatFcfa(totalProduits), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(_livraisonGratuite ? 'Frais livraison (Offerts) :' : 'Frais de livraison :', style: TextStyle(color: _livraisonGratuite ? AppColors.success : Colors.white70, fontSize: 13)),
+                        Text(_livraisonGratuite ? '0 FCFA' : formatFcfa(_quartier?.tarifLivraison ?? 0), style: TextStyle(color: _livraisonGratuite ? AppColors.success : Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                      ],
+                    ),
+                    const Divider(color: Colors.white24, height: 16),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text('À ENCAISSER PAR LE LIVREUR :', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11.5)),
+                        Text(formatFcfa(totalAEncaisser), style: const TextStyle(color: Color(0xFF22C55E), fontWeight: FontWeight.w900, fontSize: 15)),
+                      ],
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 16),
           ElevatedButton(
             onPressed: _submitting ? null : _submit,
             child: _submitting
