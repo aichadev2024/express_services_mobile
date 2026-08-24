@@ -23,7 +23,7 @@ class _VitrineScreenState extends ConsumerState<VitrineScreen> with SingleTicker
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
   }
 
   @override
@@ -72,7 +72,7 @@ class _VitrineScreenState extends ConsumerState<VitrineScreen> with SingleTicker
             // 1. Hero Showcase Header Banner
             _buildHeroBanner(context),
 
-            // 2. Interactive Navigation Tabs (Catalogue, Calculateur, Suivi, Commander)
+            // 2. Interactive Navigation Tabs (Calculateur, Suivi, Commander)
             Container(
               color: Colors.white,
               child: TabBar(
@@ -84,10 +84,9 @@ class _VitrineScreenState extends ConsumerState<VitrineScreen> with SingleTicker
                 indicatorWeight: 3,
                 labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                 tabs: const [
-                  Tab(icon: Icon(Icons.inventory_2_outlined, size: 20), text: 'Catalogue & Tarifs'),
-                  Tab(icon: Icon(Icons.calculate_outlined, size: 20), text: 'Calculateur Quartier'),
+                  Tab(icon: Icon(Icons.calculate_outlined, size: 20), text: 'Tarifs par Quartier'),
                   Tab(icon: Icon(Icons.search_rounded, size: 20), text: 'Suivi de Colis'),
-                  Tab(icon: Icon(Icons.add_shopping_cart_rounded, size: 20), text: 'Passer Commande'),
+                  Tab(icon: Icon(Icons.add_shopping_cart_rounded, size: 20), text: 'Demander une Livraison'),
                 ],
               ),
             ),
@@ -98,7 +97,6 @@ class _VitrineScreenState extends ConsumerState<VitrineScreen> with SingleTicker
               child: TabBarView(
                 controller: _tabController,
                 children: [
-                  _buildCatalogueTab(context),
                   _buildCalculateurTarifTab(context),
                   const SuiviParticulierTab(),
                   const NouvelleCommandeParticulierTab(),
@@ -219,99 +217,6 @@ class _VitrineScreenState extends ConsumerState<VitrineScreen> with SingleTicker
           Text(subtitle, style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 9.5), textAlign: TextAlign.center),
         ],
       ),
-    );
-  }
-
-  Widget _buildCatalogueTab(BuildContext context) {
-    final produitsAsync = ref.watch(produitsProvider);
-
-    return produitsAsync.when(
-      loading: () => const Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            CircularProgressIndicator(color: AppColors.primary),
-            SizedBox(height: 12),
-            Text('Chargement du catalogue...', style: TextStyle(color: Color(0xFF64748B), fontSize: 13)),
-          ],
-        ),
-      ),
-      error: (err, _) => Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.wifi_off_rounded, size: 44, color: AppColors.danger),
-              const SizedBox(height: 12),
-              const Text(
-                'Impossible de charger le catalogue',
-                style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.navy, fontSize: 15),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                err.toString().replaceAll('ApiException: ', ''),
-                textAlign: TextAlign.center,
-                style: const TextStyle(color: Color(0xFF64748B), fontSize: 12),
-              ),
-              const SizedBox(height: 16),
-              ElevatedButton.icon(
-                onPressed: () => ref.invalidate(produitsProvider),
-                icon: const Icon(Icons.refresh, size: 18),
-                label: const Text('Réessayer'),
-                style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-              ),
-            ],
-          ),
-        ),
-      ),
-      data: (produits) {
-        if (produits.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.inventory_2_outlined, size: 48, color: Color(0xFF94A3B8)),
-                const SizedBox(height: 12),
-                const Text('Aucun produit disponible dans le catalogue', style: TextStyle(color: Color(0xFF64748B))),
-                const SizedBox(height: 12),
-                ElevatedButton.icon(
-                  onPressed: () => ref.invalidate(produitsProvider),
-                  icon: const Icon(Icons.refresh, size: 18),
-                  label: const Text('Rafraîchir'),
-                ),
-              ],
-            ),
-          );
-        }
-        return ListView.builder(
-          padding: const EdgeInsets.all(16),
-          itemCount: produits.length,
-          itemBuilder: (context, index) {
-            final p = produits[index];
-            return Card(
-              margin: const EdgeInsets.only(bottom: 12),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              child: ListTile(
-                leading: CircleAvatar(
-                  backgroundColor: AppColors.primary.withValues(alpha: 0.1),
-                  child: const Icon(Icons.local_shipping, color: AppColors.primary),
-                ),
-                title: Text(p.nom, style: const TextStyle(fontWeight: FontWeight.bold)),
-                subtitle: Text('${p.prix.toStringAsFixed(0)} FCFA'),
-                trailing: ElevatedButton(
-                  onPressed: () => _tabController.animateTo(3),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.navy,
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  ),
-                  child: const Text('Commander', style: TextStyle(fontSize: 12, color: Colors.white)),
-                ),
-              ),
-            );
-          },
-        );
-      },
     );
   }
 
