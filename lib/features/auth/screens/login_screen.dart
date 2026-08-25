@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/express_logo.dart';
-import '../../../core/widgets/server_config_dialog.dart';
 import '../providers/auth_provider.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -93,12 +92,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               ),
                             ],
                           ),
-                        ),
-                        const SizedBox(width: 6),
-                        IconButton(
-                          onPressed: () => ServerConfigDialog.show(context),
-                          icon: const Icon(Icons.dns_rounded, color: Colors.white, size: 20),
-                          tooltip: 'IP Serveur Backend',
                         ),
                       ],
                     ),
