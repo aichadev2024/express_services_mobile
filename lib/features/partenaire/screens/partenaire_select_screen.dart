@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_theme.dart';
-import '../../../core/widgets/server_config_dialog.dart';
 import '../../../models/partenaire.dart';
 import '../providers/reference_data_providers.dart';
 
@@ -30,14 +29,6 @@ class _PartenaireSelectScreenState extends ConsumerState<PartenaireSelectScreen>
           icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
           onPressed: () => context.go('/'),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.dns_rounded, color: Colors.white, size: 22),
-            tooltip: 'Configuration IP Backend',
-            onPressed: () => ServerConfigDialog.show(context),
-          ),
-          const SizedBox(width: 8),
-        ],
       ),
       body: Column(
         children: [

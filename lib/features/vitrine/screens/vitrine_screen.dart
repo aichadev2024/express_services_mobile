@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/express_logo.dart';
-import '../../../core/widgets/server_config_dialog.dart';
 import '../../partenaire/providers/reference_data_providers.dart';
 import '../../particulier/widgets/nouvelle_commande_particulier_tab.dart';
 import '../../particulier/widgets/suivi_particulier_tab.dart';
@@ -49,13 +48,6 @@ class _VitrineScreenState extends ConsumerState<VitrineScreen> with SingleTicker
         ),
         centerTitle: false,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.dns_rounded, color: Colors.white, size: 20),
-            visualDensity: VisualDensity.compact,
-            padding: EdgeInsets.zero,
-            tooltip: 'Configuration IP / Serveur Backend',
-            onPressed: () => ServerConfigDialog.show(context),
-          ),
           IconButton(
             icon: const Icon(Icons.account_circle_outlined, color: Colors.white, size: 24),
             visualDensity: VisualDensity.compact,
