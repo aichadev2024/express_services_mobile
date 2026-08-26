@@ -1253,7 +1253,8 @@ class _NouvelleCommandeParticulierTabState
               ),
             const SizedBox(height: 24),
           ],
-        ),
-      );
-    }
+        ],
+      ),
+    );
   }
+}
