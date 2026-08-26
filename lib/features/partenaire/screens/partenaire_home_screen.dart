@@ -24,6 +24,12 @@ class PartenaireHomeScreen extends StatelessWidget {
           ),
           bottom: const TabBar(
             isScrollable: true,
+            labelColor: Colors.white,
+            unselectedLabelColor: Colors.white54,
+            indicatorColor: Color(0xFFE11D48),
+            indicatorWeight: 3,
+            labelStyle: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+            unselectedLabelStyle: TextStyle(fontWeight: FontWeight.normal, fontSize: 13),
             tabs: [
               Tab(text: 'Nouvelle commande', icon: Icon(Icons.add_shopping_cart_outlined)),
               Tab(text: 'Mes Commandes', icon: Icon(Icons.bar_chart_rounded)),
