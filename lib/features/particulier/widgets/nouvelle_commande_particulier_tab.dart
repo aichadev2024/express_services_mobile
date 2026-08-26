@@ -185,6 +185,10 @@ class _NouvelleCommandeParticulierTabState
               adressePrecise: _destinataireAdresseCtrl.text.trim(),
               latitude: _lat,
               longitude: _lng,
+              // Frictionless auto-registration: send expediteur info native 
+              nomExpediteur: _typeUser == 'e-commercant' || !isEnvoi ? _expediteurNomCtrl.text.trim() : null,
+              telephoneExpediteur: _typeUser == 'e-commercant' || !isEnvoi ? _expediteurTelCtrl.text.trim() : null,
+              adresseExpediteur: _typeUser == 'e-commercant' || !isEnvoi ? _expediteurAdresseCtrl.text.trim() : null,
             ),
           );
 

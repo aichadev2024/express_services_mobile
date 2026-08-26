@@ -19,6 +19,11 @@ class CommandeRequest {
   final int? partenaireId;
   final String? descriptionArticle;
   final bool? livraisonGratuite;
+  
+  // Frictionless auto-registration fields
+  final String? nomExpediteur;
+  final String? telephoneExpediteur;
+  final String? adresseExpediteur;
 
   const CommandeRequest({
     required this.nomClient,
@@ -33,6 +38,9 @@ class CommandeRequest {
     this.partenaireId,
     this.descriptionArticle,
     this.livraisonGratuite,
+    this.nomExpediteur,
+    this.telephoneExpediteur,
+    this.adresseExpediteur,
   });
 
   Map<String, dynamic> toJson() => {
@@ -50,6 +58,9 @@ class CommandeRequest {
         if (descriptionArticle != null && descriptionArticle!.isNotEmpty)
           'descriptionArticle': descriptionArticle,
         if (livraisonGratuite != null) 'livraisonGratuite': livraisonGratuite,
+        if (nomExpediteur != null && nomExpediteur!.isNotEmpty) 'nomExpediteur': nomExpediteur,
+        if (telephoneExpediteur != null && telephoneExpediteur!.isNotEmpty) 'telephoneExpediteur': telephoneExpediteur,
+        if (adresseExpediteur != null && adresseExpediteur!.isNotEmpty) 'adresseExpediteur': adresseExpediteur,
       };
 }
 
