@@ -55,7 +55,6 @@ class _NouvelleCommandeParticulierTabState
   final _valeurColisCtrl = TextEditingController();
   final _prixColisCtrl = TextEditingController();
 
-  Quartier? _quartierRamassage;
   Quartier? _quartierLivraison;
   double? _lat;
   double? _lng;
@@ -618,6 +617,7 @@ class _NouvelleCommandeParticulierTabState
                   ),
                 ],
               ),
+            ),
 
           // ==========================================
           // 1. FORMULAIRE E-COMMERÇANT
@@ -630,7 +630,7 @@ class _NouvelleCommandeParticulierTabState
                 borderRadius: BorderRadius.circular(12),
                 side: BorderSide(color: Colors.grey.shade300),
               ),
-              color: Colors.blue.shade50.withOpacity(0.4),
+              color: Colors.blue.shade50.withValues(alpha: 0.4),
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
@@ -709,7 +709,7 @@ class _NouvelleCommandeParticulierTabState
                             child: Container(
                               padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
                               decoration: BoxDecoration(
-                                color: _modePaiement == 'livraison' ? AppColors.primary.withOpacity(0.1) : Colors.white,
+                                color: _modePaiement == 'livraison' ? AppColors.primary.withValues(alpha: 0.1) : Colors.white,
                                 borderRadius: BorderRadius.circular(8),
                                 border: Border.all(color: _modePaiement == 'livraison' ? AppColors.primary : Colors.grey.shade300, width: 1.5),
                               ),
@@ -731,7 +731,7 @@ class _NouvelleCommandeParticulierTabState
                             child: Container(
                               padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
                               decoration: BoxDecoration(
-                                color: _modePaiement == 'deja_paye' ? AppColors.success.withOpacity(0.1) : Colors.white,
+                                color: _modePaiement == 'deja_paye' ? AppColors.success.withValues(alpha: 0.1) : Colors.white,
                                 borderRadius: BorderRadius.circular(8),
                                 border: Border.all(color: _modePaiement == 'deja_paye' ? AppColors.success : Colors.grey.shade300, width: 1.5),
                               ),
@@ -761,7 +761,7 @@ class _NouvelleCommandeParticulierTabState
                 borderRadius: BorderRadius.circular(12),
                 side: BorderSide(color: Colors.grey.shade300),
               ),
-              color: Colors.amber.shade50.withOpacity(0.4),
+              color: Colors.amber.shade50.withValues(alpha: 0.4),
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
@@ -821,7 +821,7 @@ class _NouvelleCommandeParticulierTabState
                 borderRadius: BorderRadius.circular(12),
                 side: BorderSide(color: Colors.grey.shade300),
               ),
-              color: Colors.teal.shade50.withOpacity(0.3),
+              color: Colors.teal.shade50.withValues(alpha: 0.3),
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
@@ -861,7 +861,7 @@ class _NouvelleCommandeParticulierTabState
                       loading: () => const LinearProgressIndicator(),
                       error: (err, _) => Text(err.toString()),
                       data: (quartiers) => DropdownButtonFormField<Quartier>(
-                        value: _quartierLivraison,
+                        initialValue: _quartierLivraison,
                         decoration: const InputDecoration(
                           labelText: 'Quartier du client',
                           prefixIcon: Icon(Icons.location_city),
@@ -994,8 +994,8 @@ class _NouvelleCommandeParticulierTabState
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text('Montant à encaisser :', style: TextStyle(color: AppColors.secondary, fontWeight: FontWeight.bold, fontSize: 14)),
-                          Text(formatFcfa(totalEncaisser), style: const TextStyle(color: AppColors.secondary, fontWeight: FontWeight.extrabold, fontSize: 16)),
+                          const Text('Montant à encaisser :', style: TextStyle(color: AppColors.success, fontWeight: FontWeight.bold, fontSize: 14)),
+                          Text(formatFcfa(totalEncaisser), style: const TextStyle(color: AppColors.success, fontWeight: FontWeight.w900, fontSize: 16)),
                         ],
                       ),
                     ],
@@ -1024,12 +1024,12 @@ class _NouvelleCommandeParticulierTabState
                 ),
               ),
             ),
-          ]
+          ],
 
           // ==========================================
           // 2. FORMULAIRE PARTICULIER
           // ==========================================
-          else ...[
+          if (_typeUser == 'particulier') ...[
             // Section A: 📍 Point de récupération
             Card(
               elevation: 0,
@@ -1037,7 +1037,7 @@ class _NouvelleCommandeParticulierTabState
                 borderRadius: BorderRadius.circular(12),
                 side: BorderSide(color: Colors.grey.shade300),
               ),
-              color: Colors.amber.shade50.withOpacity(0.4),
+              color: Colors.amber.shade50.withValues(alpha: 0.4),
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
@@ -1107,7 +1107,7 @@ class _NouvelleCommandeParticulierTabState
                 borderRadius: BorderRadius.circular(12),
                 side: BorderSide(color: Colors.grey.shade300),
               ),
-              color: Colors.blue.shade50.withOpacity(0.4),
+              color: Colors.blue.shade50.withValues(alpha: 0.4),
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
@@ -1147,7 +1147,7 @@ class _NouvelleCommandeParticulierTabState
                       loading: () => const LinearProgressIndicator(),
                       error: (err, _) => Text(err.toString()),
                       data: (quartiers) => DropdownButtonFormField<Quartier>(
-                        value: _quartierLivraison,
+                        initialValue: _quartierLivraison,
                         decoration: const InputDecoration(
                           labelText: 'Quartier de livraison',
                           prefixIcon: Icon(Icons.location_city),
@@ -1249,6 +1249,7 @@ class _NouvelleCommandeParticulierTabState
                 label: Text(
                   _submitting ? 'Traitement...' : 'DEMANDER LA LIVRAISON',
                   style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white),
+                ),
               ),
             ),
             const SizedBox(height: 24),
