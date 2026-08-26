@@ -1246,12 +1246,9 @@ class _NouvelleCommandeParticulierTabState
                   style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white),
                 ),
               ),
-            ),
+            const SizedBox(height: 24),
           ],
-
-          const SizedBox(height: 24),
-        ],
-      ),
-    );
+        ),
+      );
+    }
   }
-}
