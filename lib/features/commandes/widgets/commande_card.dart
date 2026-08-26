@@ -97,18 +97,26 @@ class CommandeCard extends StatelessWidget {
               const SizedBox(height: 8),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text(formatDateTime(commande.dateCreation),
-                      style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 11.5)),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text('À encaisser : ${formatFcfa(commande.montantAEncaisser ?? commande.montantTotal)}',
-                          style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13.5, color: AppColors.navy)),
-                      if (commande.livraisonGratuite == true)
-                        const Text('Livraison Gratuite',
-                            style: TextStyle(color: AppColors.success, fontSize: 10.5, fontWeight: FontWeight.bold)),
-                    ],
+                  Expanded(
+                    child: Text(formatDateTime(commande.dateCreation),
+                        style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 11.5)),
+                  ),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text('À encaisser : ${formatFcfa(commande.montantAEncaisser ?? commande.montantTotal)}',
+                              style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13.5, color: AppColors.navy)),
+                        ),
+                        if (commande.livraisonGratuite == true)
+                          const Text('Livraison Gratuite',
+                              style: TextStyle(color: AppColors.success, fontSize: 10.5, fontWeight: FontWeight.bold)),
+                      ],
+                    ),
                   ),
                 ],
               ),

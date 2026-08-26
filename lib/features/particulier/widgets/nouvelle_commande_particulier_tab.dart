@@ -717,7 +717,7 @@ class _NouvelleCommandeParticulierTabState
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   const Text('💵 ', style: TextStyle(fontSize: 14)),
-                                  Text('Paiement à la livraison', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: _modePaiement == 'livraison' ? AppColors.primary : Colors.black87)),
+                                  Flexible(child: FittedBox(fit: BoxFit.scaleDown, child: Text('Paiement à la livraison', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: _modePaiement == 'livraison' ? AppColors.primary : Colors.black87)))),
                                 ],
                               ),
                             ),
