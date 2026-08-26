@@ -1249,8 +1249,8 @@ class _NouvelleCommandeParticulierTabState
                 label: Text(
                   _submitting ? 'Traitement...' : 'DEMANDER LA LIVRAISON',
                   style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white),
-                ),
               ),
+            ),
             const SizedBox(height: 24),
           ],
         ],
