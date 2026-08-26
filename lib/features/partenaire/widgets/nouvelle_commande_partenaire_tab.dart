@@ -176,6 +176,43 @@ class _NouvelleCommandePartenaireTabState
       child: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          const Text('📍 Récupération (Vos informations)', style: TextStyle(fontWeight: FontWeight.w700, color: AppColors.primary)),
+          const SizedBox(height: 8),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppColors.navy.withValues(alpha: 0.05),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: AppColors.navy.withValues(alpha: 0.1)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const Icon(Icons.storefront, size: 18, color: AppColors.navy),
+                    const SizedBox(width: 8),
+                    Expanded(child: Text(widget.partenaire.nom, style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.navy))),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    const Icon(Icons.phone, size: 18, color: AppColors.navy),
+                    const SizedBox(width: 8),
+                    Expanded(child: Text(widget.partenaire.telephone, style: const TextStyle(color: Color(0xFF64748B)))),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                const Text(
+                  '💡 Mémorisées : ces informations sont automatiquement transmises au livreur pour le ramassage. Inutile de les ressaisir !',
+                  style: TextStyle(fontSize: 11, fontStyle: FontStyle.italic, color: Color(0xFF475569)),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 20),
+
           const Text('Produits en stock', style: TextStyle(fontWeight: FontWeight.w700)),
           const SizedBox(height: 8),
           produitsAsync.when(

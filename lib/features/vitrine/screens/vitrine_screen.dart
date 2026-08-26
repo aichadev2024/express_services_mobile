@@ -329,7 +329,7 @@ class _VitrineScreenState extends ConsumerState<VitrineScreen> with SingleTicker
                 child: OutlinedButton.icon(
                   onPressed: () => context.push('/partenaire/select'),
                   icon: const Icon(Icons.storefront, size: 18, color: Colors.white),
-                  label: const Text('Accès Partenaire', style: TextStyle(color: Colors.white, fontSize: 12.5)),
+                  label: const FittedBox(fit: BoxFit.scaleDown, child: Text('Accès Partenaire', style: TextStyle(color: Colors.white, fontSize: 12.5))),
                   style: OutlinedButton.styleFrom(
                     side: const BorderSide(color: Color(0xFF334155)),
                     padding: const EdgeInsets.symmetric(vertical: 14),
@@ -337,12 +337,12 @@ class _VitrineScreenState extends ConsumerState<VitrineScreen> with SingleTicker
                   ),
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 8),
               Expanded(
                 child: ElevatedButton.icon(
                   onPressed: () => context.push('/livreur/login'),
                   icon: const Icon(Icons.shield_outlined, size: 18, color: Colors.white),
-                  label: const Text('Espace Livreur', style: TextStyle(color: Colors.white, fontSize: 12.5, fontWeight: FontWeight.bold)),
+                  label: const FittedBox(fit: BoxFit.scaleDown, child: Text('Espace Livreur', style: TextStyle(color: Colors.white, fontSize: 12.5, fontWeight: FontWeight.bold))),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
                     padding: const EdgeInsets.symmetric(vertical: 14),
