@@ -24,7 +24,18 @@ class _NouvelleCommandeParticulierTabState
     extends ConsumerState<NouvelleCommandeParticulierTab> {
   final _formKey = GlobalKey<FormState>();
 
+  String _typeUser = 'e-commercant'; // 'e-commercant' ou 'particulier'
   ModeCommandeParticulier _mode = ModeCommandeParticulier.envoi;
+
+  // Référence auto-générée
+  late String _referenceCommande;
+
+  // E-Commerce Champs
+  final _nomProduitCtrl = TextEditingController();
+  final _quantiteCtrl = TextEditingController(text: '1');
+  final _montantCommandeCtrl = TextEditingController();
+  String _modePaiement = 'livraison'; // 'livraison' ou 'deja_paye'
+  bool _isFragile = false;
 
   // Champs Expéditeur / Ramassage
   final _expediteurNomCtrl = TextEditingController();
@@ -37,11 +48,14 @@ class _NouvelleCommandeParticulierTabState
   final _destinataireTelCtrl = TextEditingController();
   final _emailCtrl = TextEditingController();
   final _destinataireAdresseCtrl = TextEditingController();
+  final _instructionsCtrl = TextEditingController();
 
-  // Champ Description & Prix du colis
+  // Champ Description, Valeur & Prix du colis
   final _descriptionCtrl = TextEditingController();
+  final _valeurColisCtrl = TextEditingController();
   final _prixColisCtrl = TextEditingController();
 
+  Quartier? _quartierRamassage;
   Quartier? _quartierLivraison;
   double? _lat;
   double? _lng;
@@ -49,7 +63,16 @@ class _NouvelleCommandeParticulierTabState
   bool _submitting = false;
 
   @override
+  void initState() {
+    super.initState();
+    _referenceCommande = 'EXP-${DateTime.now().year}-${1000 + (DateTime.now().millisecondsSinceEpoch % 8999)}';
+  }
+
+  @override
   void dispose() {
+    _nomProduitCtrl.dispose();
+    _quantiteCtrl.dispose();
+    _montantCommandeCtrl.dispose();
     _expediteurNomCtrl.dispose();
     _expediteurTelCtrl.dispose();
     _expediteurQuartierCtrl.dispose();
@@ -58,7 +81,9 @@ class _NouvelleCommandeParticulierTabState
     _destinataireTelCtrl.dispose();
     _emailCtrl.dispose();
     _destinataireAdresseCtrl.dispose();
+    _instructionsCtrl.dispose();
     _descriptionCtrl.dispose();
+    _valeurColisCtrl.dispose();
     _prixColisCtrl.dispose();
     super.dispose();
   }
@@ -119,26 +144,37 @@ class _NouvelleCommandeParticulierTabState
     setState(() => _submitting = true);
 
     try {
+      final isEcommercant = _typeUser == 'e-commercant';
       final isEnvoi = _mode == ModeCommandeParticulier.envoi;
 
       final nomFinal = _destinataireNomCtrl.text.trim();
       final telFinal = _destinataireTelCtrl.text.trim();
-      final prixColisStr = _prixColisCtrl.text.trim();
-      final double prixColis = double.tryParse(prixColisStr) ?? 0.0;
 
-      final String detailRamassage = isEnvoi
-          ? "📍 RAMASSAGE CHEZ EXPÉDITEUR : ${_expediteurNomCtrl.text.trim()} (Tél: ${_expediteurTelCtrl.text.trim()}) - Adresse: ${_expediteurAdresseCtrl.text.trim()}"
-          : "📍 RÉCUPÉRATION CHEZ VENDEUR/PROCHE : ${_expediteurNomCtrl.text.trim()} (Tél: ${_expediteurTelCtrl.text.trim()}) - Quartier: ${_expediteurQuartierCtrl.text.trim()} - Adresse: ${_expediteurAdresseCtrl.text.trim()}";
+      String fullDescription = '';
+      if (isEcommercant) {
+        final double montantCmd = double.tryParse(_montantCommandeCtrl.text.trim()) ?? 0.0;
+        final double totalAEncaisser = _modePaiement == 'livraison'
+            ? (montantCmd + _quartierLivraison!.tarifLivraison)
+            : _quartierLivraison!.tarifLivraison;
 
-      final String detailPrixMarchandise = prixColis > 0
-          ? "💰 PRIX MARCHANDISE À ENCAISSER: ${formatFcfa(prixColis)}\n💳 TOTAL À PERCEVOIR PAR LE LIVREUR: ${formatFcfa(prixColis + _quartierLivraison!.tarifLivraison)}\n"
-          : "💳 TOTAL À PERCEVOIR (Frais livraison): ${formatFcfa(_quartierLivraison!.tarifLivraison)}\n";
-
-      final String fullDescription =
-          "[MODE: ${isEnvoi ? 'ENVOI DE COLIS' : 'RÉCUPÉRATION DE COLIS'}]\n"
-          "📦 ARTICLE: ${_descriptionCtrl.text.trim()}\n"
-          "$detailPrixMarchandise"
-          "$detailRamassage";
+        fullDescription =
+            "📌 RÉFÉRENCE: $_referenceCommande\n"
+            "📦 PRODUIT: ${_nomProduitCtrl.text.trim()} (Qté: ${_quantiteCtrl.text.trim()})\n"
+            "💰 MONTANT COMMANDE: ${formatFcfa(montantCmd)}\n"
+            "💳 MODE PAIEMENT: ${_modePaiement == 'livraison' ? '💵 Paiement à la livraison' : '✅ Déjà payé'}\n"
+            "⚠️ FRAGILE: ${_isFragile ? 'OUI 🍷' : 'NON 📦'}\n"
+            "📍 RAMASSAGE BOUTIQUE: ${_expediteurNomCtrl.text.trim()} (Tél: ${_expediteurTelCtrl.text.trim()}) - ${_expediteurAdresseCtrl.text.trim()}\n"
+            "📝 INSTRUCTIONS LIVREUR: ${_instructionsCtrl.text.trim().isEmpty ? 'Aucune' : _instructionsCtrl.text.trim()}\n"
+            "💵 TOTAL À ENCAISSER: ${formatFcfa(totalAEncaisser)}";
+      } else {
+        final double valColis = double.tryParse(_valeurColisCtrl.text.trim()) ?? 0.0;
+        fullDescription =
+            "[MODE: ${isEnvoi ? 'ENVOI DE COLIS' : 'RÉCUPÉRATION DE COLIS'}]\n"
+            "📦 CONTENU: ${_descriptionCtrl.text.trim()}\n"
+            "💰 VALEUR ESTIMÉE: ${formatFcfa(valColis)}\n"
+            "📍 POINT DE RÉCUPÉRATION: ${_expediteurNomCtrl.text.trim()} (Tél: ${_expediteurTelCtrl.text.trim()}) - Adresse: ${_expediteurAdresseCtrl.text.trim()}\n"
+            "📝 INSTRUCTIONS PARTICULIÈRES: ${_instructionsCtrl.text.trim().isEmpty ? 'Aucune' : _instructionsCtrl.text.trim()}";
+      }
 
       final commande = await ref.read(commandeRepositoryProvider).creerCommande(
             CommandeRequest(
@@ -160,8 +196,8 @@ class _NouvelleCommandeParticulierTabState
         context: context,
         builder: (context) => AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: Row(
-            children: const [
+          title: const Row(
+            children: [
               Icon(Icons.check_circle, color: AppColors.success, size: 28),
               SizedBox(width: 10),
               Expanded(
@@ -178,7 +214,7 @@ class _NouvelleCommandeParticulierTabState
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Votre demande de livraison #${commande.id} a été créée avec succès.',
+                  'Votre demande #${commande.id} a été créée avec succès.',
                   style: const TextStyle(fontSize: 14),
                 ),
                 const SizedBox(height: 10),
@@ -195,7 +231,7 @@ class _NouvelleCommandeParticulierTabState
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          'Montant à régler : ${formatFcfa(_quartierLivraison?.tarifLivraison ?? 0)}',
+                          'Montant livraison : ${formatFcfa(_quartierLivraison?.tarifLivraison ?? 0)}',
                           style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.navy, fontSize: 13),
                         ),
                       ),
@@ -204,7 +240,7 @@ class _NouvelleCommandeParticulierTabState
                 ),
                 const SizedBox(height: 10),
                 const Text(
-                  'Un livreur prendra en charge votre colis incessamment.',
+                  'Un livreur prendra en charge votre colis sous peu.',
                   style: TextStyle(fontSize: 13, color: Color(0xFF64748B)),
                 ),
               ],
@@ -230,6 +266,9 @@ class _NouvelleCommandeParticulierTabState
   }
 
   void _resetForm() {
+    _nomProduitCtrl.clear();
+    _quantiteCtrl.text = '1';
+    _montantCommandeCtrl.clear();
     _expediteurNomCtrl.clear();
     _expediteurTelCtrl.clear();
     _expediteurQuartierCtrl.clear();
@@ -238,8 +277,12 @@ class _NouvelleCommandeParticulierTabState
     _destinataireTelCtrl.clear();
     _emailCtrl.clear();
     _destinataireAdresseCtrl.clear();
+    _instructionsCtrl.clear();
     _descriptionCtrl.clear();
+    _valeurColisCtrl.clear();
+    _prixColisCtrl.clear();
     setState(() {
+      _referenceCommande = 'EXP-${DateTime.now().year}-${1000 + (DateTime.now().millisecondsSinceEpoch % 8999)}';
       _quartierLivraison = null;
       _lat = null;
       _lng = null;
@@ -305,7 +348,125 @@ class _NouvelleCommandeParticulierTabState
       child: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          // Mode Selector
+          // 1. Title: Que souhaitez-vous faire ?
+          const Text(
+            'Que souhaitez-vous faire ?',
+            style: TextStyle(fontWeight: FontWeight.extrabold, fontSize: 16, color: AppColors.navy),
+          ),
+          const SizedBox(height: 10),
+
+          // 2. Profile Choice Cards
+          Row(
+            children: [
+              Expanded(
+                child: InkWell(
+                  onTap: () => setState(() => _typeUser = 'e-commercant'),
+                  borderRadius: BorderRadius.circular(12),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: _typeUser == 'e-commercant' ? AppColors.navy : Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: _typeUser == 'e-commercant' ? AppColors.navy : Colors.grey.shade300,
+                        width: 2,
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(Icons.storefront_rounded,
+                                color: _typeUser == 'e-commercant' ? Colors.white : AppColors.primary, size: 20),
+                            const SizedBox(width: 6),
+                            Expanded(
+                              child: Text(
+                                'Je suis e-commerçant',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12,
+                                  color: _typeUser == 'e-commercant' ? Colors.white : AppColors.navy,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          'Je veux faire livrer une commande à mon client.',
+                          style: TextStyle(
+                            fontSize: 10.5,
+                            color: _typeUser == 'e-commercant' ? Colors.white70 : const Color(0xFF64748B),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: InkWell(
+                  onTap: () => setState(() => _typeUser = 'particulier'),
+                  borderRadius: BorderRadius.circular(12),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: _typeUser == 'particulier' ? AppColors.navy : Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: _typeUser == 'particulier' ? AppColors.navy : Colors.grey.shade300,
+                        width: 2,
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(Icons.person_pin_circle_rounded,
+                                color: _typeUser == 'particulier' ? Colors.white : AppColors.primary, size: 20),
+                            const SizedBox(width: 6),
+                            Expanded(
+                              child: Text(
+                                'Je suis un particulier',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12,
+                                  color: _typeUser == 'particulier' ? Colors.white : AppColors.navy,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          'Je veux envoyer ou faire récupérer un colis.',
+                          style: TextStyle(
+                            fontSize: 10.5,
+                            color: _typeUser == 'particulier' ? Colors.white70 : const Color(0xFF64748B),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 16),
+
+          // 3. Type de demande Label & Tabs
+          const Text(
+            'Type de demande',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF475569)),
+          ),
+          const SizedBox(height: 8),
+
           Container(
             padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(
@@ -317,26 +478,29 @@ class _NouvelleCommandeParticulierTabState
               children: [
                 Expanded(
                   child: InkWell(
-                    onTap: () => setState(() => _mode = ModeCommandeParticulier.envoi),
+                    onTap: () => setState(() => _typeUser = 'e-commercant'),
                     borderRadius: BorderRadius.circular(10),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      padding: const EdgeInsets.symmetric(vertical: 10),
                       decoration: BoxDecoration(
-                        color: isEnvoi ? AppColors.primary : Colors.transparent,
+                        color: _typeUser == 'e-commercant' ? AppColors.primary : Colors.transparent,
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                      child: Column(
                         children: [
-                          Icon(Icons.unarchive,
-                              size: 18, color: isEnvoi ? Colors.white : const Color(0xFF64748B)),
-                          const SizedBox(width: 6),
                           Text(
-                            "J'envoie un colis",
+                            "1- Nouvelle commande",
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
-                              fontSize: 13,
-                              color: isEnvoi ? Colors.white : const Color(0xFF64748B),
+                              fontSize: 12,
+                              color: _typeUser == 'e-commercant' ? Colors.white : const Color(0xFF64748B),
+                            ),
+                          ),
+                          Text(
+                            "Pour les e-commerçants",
+                            style: TextStyle(
+                              fontSize: 9.5,
+                              color: _typeUser == 'e-commercant' ? Colors.white70 : const Color(0xFF94A3B8),
                             ),
                           ),
                         ],
@@ -346,26 +510,29 @@ class _NouvelleCommandeParticulierTabState
                 ),
                 Expanded(
                   child: InkWell(
-                    onTap: () => setState(() => _mode = ModeCommandeParticulier.recuperation),
+                    onTap: () => setState(() => _typeUser = 'particulier'),
                     borderRadius: BorderRadius.circular(10),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      padding: const EdgeInsets.symmetric(vertical: 10),
                       decoration: BoxDecoration(
-                        color: !isEnvoi ? AppColors.primary : Colors.transparent,
+                        color: _typeUser == 'particulier' ? AppColors.primary : Colors.transparent,
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                      child: Column(
                         children: [
-                          Icon(Icons.archive,
-                              size: 18, color: !isEnvoi ? Colors.white : const Color(0xFF64748B)),
-                          const SizedBox(width: 6),
                           Text(
-                            "Je fais récupérer",
+                            "2- Envoyer / Récupérer",
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
-                              fontSize: 13,
-                              color: !isEnvoi ? Colors.white : const Color(0xFF64748B),
+                              fontSize: 12,
+                              color: _typeUser == 'particulier' ? Colors.white : const Color(0xFF64748B),
+                            ),
+                          ),
+                          Text(
+                            "Pour les particuliers",
+                            style: TextStyle(
+                              fontSize: 9.5,
+                              color: _typeUser == 'particulier' ? Colors.white70 : const Color(0xFF94A3B8),
                             ),
                           ),
                         ],
@@ -377,255 +544,716 @@ class _NouvelleCommandeParticulierTabState
             ),
           ),
 
-          const SizedBox(height: 20),
+          const SizedBox(height: 16),
 
-          // Section 1: Ramassage (Point A)
-          Card(
-            elevation: 0,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-              side: BorderSide(color: Colors.grey.shade300),
-            ),
-            color: Colors.amber.shade50.withOpacity(0.5),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+          // Conditional Particulier Envoi vs Récupération toggle
+          if (_typeUser == 'particulier')
+            Container(
+              margin: const EdgeInsets.only(bottom: 16),
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: Colors.grey.shade300),
+              ),
+              child: Row(
                 children: [
-                  Row(
-                    children: [
-                      const Icon(Icons.location_on, color: AppColors.primaryAccent, size: 22),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          isEnvoi
-                              ? "📍 Point de Ramassage (Chez vous / Expéditeur)"
-                              : "📍 Point de Ramassage (Vendeur / Origine)",
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                            color: AppColors.primary,
+                  Expanded(
+                    child: InkWell(
+                      onTap: () => setState(() => _mode = ModeCommandeParticulier.envoi),
+                      borderRadius: BorderRadius.circular(8),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        decoration: BoxDecoration(
+                          color: isEnvoi ? AppColors.navy : Colors.transparent,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.unarchive,
+                                size: 16, color: isEnvoi ? Colors.white : const Color(0xFF64748B)),
+                            const SizedBox(width: 6),
+                            Text(
+                              "J'envoie un colis",
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 12,
+                                color: isEnvoi ? Colors.white : const Color(0xFF64748B),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: InkWell(
+                      onTap: () => setState(() => _mode = ModeCommandeParticulier.recuperation),
+                      borderRadius: BorderRadius.circular(8),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        decoration: BoxDecoration(
+                          color: !isEnvoi ? AppColors.navy : Colors.transparent,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.archive,
+                                size: 16, color: !isEnvoi ? Colors.white : const Color(0xFF64748B)),
+                            const SizedBox(width: 6),
+                            Text(
+                              "Je fais récupérer",
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 12,
+                                color: !isEnvoi ? Colors.white : const Color(0xFF64748B),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+              // ==========================================
+          // 1. FORMULAIRE E-COMMERÇANT
+          // ==========================================
+          if (_typeUser == 'e-commercant') ...[
+            // Section A: Informations sur la commande
+            Card(
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+                side: BorderSide(color: Colors.grey.shade300),
+              ),
+              color: Colors.blue.shade50.withOpacity(0.4),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Row(
+                      children: [
+                        Icon(Icons.shopping_bag_outlined, color: AppColors.primary, size: 22),
+                        SizedBox(width: 8),
+                        Text(
+                          "Informations sur la commande",
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.primary),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      initialValue: _referenceCommande,
+                      readOnly: true,
+                      decoration: const InputDecoration(
+                        labelText: 'Référence de commande (auto)',
+                        prefixIcon: Icon(Icons.qr_code),
+                        filled: true,
+                        fillColor: Color(0xFFF1F5F9),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    TextFormField(
+                      controller: _nomProduitCtrl,
+                      decoration: const InputDecoration(
+                        labelText: 'Produit / article',
+                        prefixIcon: Icon(Icons.inventory_2_outlined),
+                      ),
+                      validator: (v) => (_typeUser == 'e-commercant' && (v == null || v.trim().isEmpty)) ? 'Champ requis' : null,
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextFormField(
+                            controller: _quantiteCtrl,
+                            keyboardType: TextInputType.number,
+                            decoration: const InputDecoration(
+                              labelText: 'Quantité',
+                              prefixIcon: Icon(Icons.numbers),
+                            ),
+                            validator: (v) => (_typeUser == 'e-commercant' && (v == null || v.trim().isEmpty)) ? 'Champ requis' : null,
                           ),
                         ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          flex: 2,
+                          child: TextFormField(
+                            controller: _montantCommandeCtrl,
+                            keyboardType: TextInputType.number,
+                            onChanged: (_) => setState(() {}),
+                            decoration: const InputDecoration(
+                              labelText: 'Montant commande (FCFA)',
+                              prefixIcon: Icon(Icons.payments_outlined),
+                              suffixText: 'FCFA',
+                            ),
+                            validator: (v) => (_typeUser == 'e-commercant' && (v == null || v.trim().isEmpty)) ? 'Champ requis' : null,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    const Text('Mode de paiement :', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF334155))),
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: InkWell(
+                            onTap: () => setState(() => _modePaiement = 'livraison'),
+                            borderRadius: BorderRadius.circular(8),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+                              decoration: BoxDecoration(
+                                color: _modePaiement == 'livraison' ? AppColors.primary.withOpacity(0.1) : Colors.white,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: _modePaiement == 'livraison' ? AppColors.primary : Colors.grey.shade300, width: 1.5),
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Text('💵 ', style: TextStyle(fontSize: 14)),
+                                  Text('Paiement à la livraison', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: _modePaiement == 'livraison' ? AppColors.primary : Colors.black87)),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: InkWell(
+                            onTap: () => setState(() => _modePaiement = 'deja_paye'),
+                            borderRadius: BorderRadius.circular(8),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+                              decoration: BoxDecoration(
+                                color: _modePaiement == 'deja_paye' ? AppColors.success.withOpacity(0.1) : Colors.white,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: _modePaiement == 'deja_paye' ? AppColors.success : Colors.grey.shade300, width: 1.5),
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Text('✅ ', style: TextStyle(fontSize: 14)),
+                                  Text('Déjà payé', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: _modePaiement == 'deja_paye' ? AppColors.success : Colors.black87)),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 14),
+
+            // Section B: 📍 Récupération du colis
+            Card(
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+                side: BorderSide(color: Colors.grey.shade300),
+              ),
+              color: Colors.amber.shade50.withOpacity(0.4),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Row(
+                      children: [
+                        Icon(Icons.location_on, color: AppColors.primaryAccent, size: 22),
+                        SizedBox(width: 8),
+                        Text(
+                          "📍 Récupération du colis",
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.primary),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: _expediteurNomCtrl,
+                      decoration: const InputDecoration(
+                        labelText: 'Nom du commerçant / boutique',
+                        prefixIcon: Icon(Icons.store),
+                      ),
+                      validator: (v) => (v == null || v.trim().isEmpty) ? 'Champ requis' : null,
+                    ),
+                    const SizedBox(height: 10),
+                    TextFormField(
+                      controller: _expediteurTelCtrl,
+                      keyboardType: TextInputType.phone,
+                      decoration: const InputDecoration(
+                        labelText: 'Téléphone commerçant',
+                        prefixIcon: Icon(Icons.phone),
+                      ),
+                      validator: (v) => (v == null || v.trim().isEmpty) ? 'Champ requis' : null,
+                    ),
+                    const SizedBox(height: 10),
+                    TextFormField(
+                      controller: _expediteurAdresseCtrl,
+                      decoration: const InputDecoration(
+                        labelText: 'Adresse de récupération',
+                        prefixIcon: Icon(Icons.home_work_outlined),
+                      ),
+                      validator: (v) => (v == null || v.trim().isEmpty) ? 'Champ requis' : null,
+                    ),
+                    const SizedBox(height: 10),
+                    _buildGpsWidget(),
+                  ],
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 14),
+
+            // Section C: 🎯 Livraison au client
+            Card(
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+                side: BorderSide(color: Colors.grey.shade300),
+              ),
+              color: Colors.teal.shade50.withOpacity(0.3),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Row(
+                      children: [
+                        Icon(Icons.flag, color: AppColors.primary, size: 22),
+                        SizedBox(width: 8),
+                        Text(
+                          "🎯 Livraison au client",
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.primary),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: _destinataireNomCtrl,
+                      decoration: const InputDecoration(
+                        labelText: 'Nom du client',
+                        prefixIcon: Icon(Icons.person),
+                      ),
+                      validator: (v) => (v == null || v.trim().isEmpty) ? 'Champ requis' : null,
+                    ),
+                    const SizedBox(height: 10),
+                    TextFormField(
+                      controller: _destinataireTelCtrl,
+                      keyboardType: TextInputType.phone,
+                      decoration: const InputDecoration(
+                        labelText: 'Téléphone du client',
+                        prefixIcon: Icon(Icons.phone_android),
+                      ),
+                      validator: (v) => (v == null || v.trim().isEmpty) ? 'Champ requis' : null,
+                    ),
+                    const SizedBox(height: 10),
+                    quartiersAsync.when(
+                      loading: () => const LinearProgressIndicator(),
+                      error: (err, _) => Text(err.toString()),
+                      data: (quartiers) => DropdownButtonFormField<Quartier>(
+                        value: _quartierLivraison,
+                        decoration: const InputDecoration(
+                          labelText: 'Quartier du client',
+                          prefixIcon: Icon(Icons.location_city),
+                        ),
+                        items: quartiers
+                            .map((q) => DropdownMenuItem(
+                                  value: q,
+                                  child: Text('${q.nom} · ${formatFcfa(q.tarifLivraison)}'),
+                                ))
+                            .toList(),
+                        onChanged: (v) => setState(() => _quartierLivraison = v),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    TextFormField(
+                      controller: _destinataireAdresseCtrl,
+                      decoration: const InputDecoration(
+                        labelText: 'Adresse précise client',
+                        prefixIcon: Icon(Icons.place_outlined),
+                      ),
+                      validator: (v) => (v == null || v.trim().isEmpty) ? 'Champ requis' : null,
+                    ),
+                    const SizedBox(height: 10),
+                    TextFormField(
+                      controller: _instructionsCtrl,
+                      decoration: const InputDecoration(
+                        labelText: 'Instruction pour le livreur (facultatif)',
+                        prefixIcon: Icon(Icons.note_alt_outlined),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 14),
+
+            // Section D: 📦 Informations complémentaires
+            Card(
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+                side: BorderSide(color: Colors.grey.shade300),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Row(
+                      children: [
+                        Icon(Icons.inventory_outlined, color: AppColors.navy, size: 22),
+                        SizedBox(width: 8),
+                        Text(
+                          "📦 Informations complémentaires",
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.navy),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: _descriptionCtrl,
+                      maxLines: 2,
+                      decoration: const InputDecoration(
+                        labelText: 'Description du colis',
+                        alignLabelWithHint: true,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text('Fragile ?', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                        Row(
+                          children: [
+                            ChoiceChip(
+                              label: const Text('Oui'),
+                              selected: _isFragile,
+                              onSelected: (val) => setState(() => _isFragile = val),
+                              selectedColor: Colors.amber.shade200,
+                            ),
+                            const SizedBox(width: 8),
+                            ChoiceChip(
+                              label: const Text('Non'),
+                              selected: !_isFragile,
+                              onSelected: (val) => setState(() => _isFragile = !val),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 16),
+
+            // Section E: Résumé Financier
+            Builder(
+              builder: (context) {
+                final double mCmd = double.tryParse(_montantCommandeCtrl.text.trim()) ?? 0.0;
+                final double fLiv = _quartierLivraison?.tarifLivraison ?? 0.0;
+                final double totalEncaisser = _modePaiement == 'livraison' ? (mCmd + fLiv) : fLiv;
+
+                return Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: AppColors.navy,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text('Montant commande :', style: TextStyle(color: Colors.white70, fontSize: 13)),
+                          Text(formatFcfa(mCmd), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text('Frais livraison :', style: TextStyle(color: Colors.white70, fontSize: 13)),
+                          Text(formatFcfa(fLiv), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                        ],
+                      ),
+                      const Divider(color: Colors.white24, height: 16),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text('Montant à encaisser :', style: TextStyle(color: AppColors.secondary, fontWeight: FontWeight.bold, fontSize: 14)),
+                          Text(formatFcfa(totalEncaisser), style: const TextStyle(color: AppColors.secondary, fontWeight: FontWeight.extrabold, fontSize: 16)),
+                        ],
                       ),
                     ],
                   ),
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    controller: _expediteurNomCtrl,
-                    decoration: InputDecoration(
-                      labelText: isEnvoi ? 'Votre nom (Expéditeur)' : 'Nom du vendeur / boutique',
-                      prefixIcon: const Icon(Icons.person_outline),
+                );
+              },
+            ),
+
+            const SizedBox(height: 20),
+
+            // Bouton E-Commerçant
+            SizedBox(
+              height: 52,
+              child: ElevatedButton.icon(
+                onPressed: _submitting ? null : _submit,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                icon: _submitting
+                    ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                    : const Icon(Icons.check_circle_outline, color: Colors.white),
+                label: Text(
+                  _submitting ? 'Traitement...' : 'CONFIRMER LA COMMANDE',
+                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white),
+                ),
+              ),
+            ),
+          ]
+
+          // ==========================================
+          // 2. FORMULAIRE PARTICULIER
+          // ==========================================
+          else ...[
+            // Section A: 📍 Point de récupération
+            Card(
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+                side: BorderSide(color: Colors.grey.shade300),
+              ),
+              color: Colors.amber.shade50.withOpacity(0.4),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(Icons.location_on, color: AppColors.primaryAccent, size: 22),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            isEnvoi ? "📍 Point de Récupération (Votre adresse)" : "📍 Point de Récupération (Origine colis)",
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.primary),
+                          ),
+                        ),
+                      ],
                     ),
-                    validator: (v) => (v == null || v.trim().isEmpty) ? 'Champ requis' : null,
-                  ),
-                  const SizedBox(height: 10),
-                  TextFormField(
-                    controller: _expediteurTelCtrl,
-                    keyboardType: TextInputType.phone,
-                    decoration: InputDecoration(
-                      labelText: isEnvoi ? 'Votre téléphone' : 'Téléphone du vendeur / origine',
-                      prefixIcon: const Icon(Icons.phone_outlined),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: _expediteurNomCtrl,
+                      decoration: InputDecoration(
+                        labelText: isEnvoi ? 'Votre nom' : 'Nom de l\'expéditeur / vendeur',
+                        prefixIcon: const Icon(Icons.person_outline),
+                      ),
+                      validator: (v) => (v == null || v.trim().isEmpty) ? 'Champ requis' : null,
                     ),
-                    validator: (v) => (v == null || v.trim().isEmpty) ? 'Champ requis' : null,
-                  ),
-                  if (!isEnvoi) ...[
+                    const SizedBox(height: 10),
+                    TextFormField(
+                      controller: _expediteurTelCtrl,
+                      keyboardType: TextInputType.phone,
+                      decoration: const InputDecoration(
+                        labelText: 'Téléphone',
+                        prefixIcon: Icon(Icons.phone_outlined),
+                      ),
+                      validator: (v) => (v == null || v.trim().isEmpty) ? 'Champ requis' : null,
+                    ),
                     const SizedBox(height: 10),
                     TextFormField(
                       controller: _expediteurQuartierCtrl,
                       decoration: const InputDecoration(
-                        labelText: 'Quartier du vendeur / origine',
+                        labelText: 'Quartier',
                         prefixIcon: Icon(Icons.map_outlined),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    TextFormField(
+                      controller: _expediteurAdresseCtrl,
+                      decoration: const InputDecoration(
+                        labelText: 'Adresse précise',
+                        prefixIcon: Icon(Icons.home_outlined),
+                      ),
+                      validator: (v) => (v == null || v.trim().isEmpty) ? 'Champ requis' : null,
+                    ),
+                    const SizedBox(height: 10),
+                    _buildGpsWidget(),
+                  ],
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 14),
+
+            // Section B: 🎯 Destinataire
+            Card(
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+                side: BorderSide(color: Colors.grey.shade300),
+              ),
+              color: Colors.blue.shade50.withOpacity(0.4),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Row(
+                      children: [
+                        Icon(Icons.flag, color: AppColors.primary, size: 22),
+                        SizedBox(width: 8),
+                        Text(
+                          "🎯 Destinataire",
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.primary),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: _destinataireNomCtrl,
+                      decoration: const InputDecoration(
+                        labelText: 'Nom du destinataire',
+                        prefixIcon: Icon(Icons.person),
+                      ),
+                      validator: (v) => (v == null || v.trim().isEmpty) ? 'Champ requis' : null,
+                    ),
+                    const SizedBox(height: 10),
+                    TextFormField(
+                      controller: _destinataireTelCtrl,
+                      keyboardType: TextInputType.phone,
+                      decoration: const InputDecoration(
+                        labelText: 'Téléphone destinataire',
+                        prefixIcon: Icon(Icons.phone),
+                      ),
+                      validator: (v) => (v == null || v.trim().isEmpty) ? 'Champ requis' : null,
+                    ),
+                    const SizedBox(height: 10),
+                    quartiersAsync.when(
+                      loading: () => const LinearProgressIndicator(),
+                      error: (err, _) => Text(err.toString()),
+                      data: (quartiers) => DropdownButtonFormField<Quartier>(
+                        value: _quartierLivraison,
+                        decoration: const InputDecoration(
+                          labelText: 'Quartier de livraison',
+                          prefixIcon: Icon(Icons.location_city),
+                        ),
+                        items: quartiers
+                            .map((q) => DropdownMenuItem(
+                                  value: q,
+                                  child: Text('${q.nom} · ${formatFcfa(q.tarifLivraison)}'),
+                                ))
+                            .toList(),
+                        onChanged: (v) => setState(() => _quartierLivraison = v),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    TextFormField(
+                      controller: _destinataireAdresseCtrl,
+                      decoration: const InputDecoration(
+                        labelText: 'Adresse précise destinataire',
+                        prefixIcon: Icon(Icons.place_outlined),
                       ),
                       validator: (v) => (v == null || v.trim().isEmpty) ? 'Champ requis' : null,
                     ),
                   ],
-                  const SizedBox(height: 10),
-                  TextFormField(
-                    controller: _expediteurAdresseCtrl,
-                    decoration: InputDecoration(
-                      labelText: isEnvoi ? 'Votre adresse précise' : 'Adresse précise du vendeur',
-                      prefixIcon: const Icon(Icons.home_outlined),
-                    ),
-                    validator: (v) => (v == null || v.trim().isEmpty) ? 'Champ requis' : null,
-                  ),
-                  if (isEnvoi) ...[
-                    const SizedBox(height: 10),
-                    _buildGpsWidget(),
-                  ],
-                ],
+                ),
               ),
             ),
-          ),
 
-          const SizedBox(height: 16),
+            const SizedBox(height: 14),
 
-          // Section 2: Livraison (Point B)
-          Card(
-            elevation: 0,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-              side: BorderSide(color: Colors.grey.shade300),
-            ),
-            color: Colors.blue.shade50.withOpacity(0.5),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      const Icon(Icons.flag, color: AppColors.primary, size: 22),
-                      const SizedBox(width: 8),
-                      Text(
-                        isEnvoi
-                            ? "🎯 Point de Livraison (Destinataire / Proche)"
-                            : "🎯 Point de Livraison (Chez vous / Destinataire)",
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                          color: AppColors.primary,
+            // Section C: 📦 Votre colis
+            Card(
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+                side: BorderSide(color: Colors.grey.shade300),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Row(
+                      children: [
+                        Icon(Icons.inventory_2_outlined, color: AppColors.primary, size: 22),
+                        SizedBox(width: 8),
+                        Text(
+                          "📦 Votre colis",
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.primary),
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    controller: _destinataireNomCtrl,
-                    decoration: InputDecoration(
-                      labelText: isEnvoi ? 'Nom du destinataire / client' : 'Votre nom (Destinataire)',
-                      prefixIcon: const Icon(Icons.person),
+                      ],
                     ),
-                    validator: (v) => (v == null || v.trim().isEmpty) ? 'Champ requis' : null,
-                  ),
-                  const SizedBox(height: 10),
-                  TextFormField(
-                    controller: _destinataireTelCtrl,
-                    keyboardType: TextInputType.phone,
-                    decoration: InputDecoration(
-                      labelText: isEnvoi ? 'Téléphone du destinataire' : 'Votre téléphone',
-                      prefixIcon: const Icon(Icons.phone),
-                    ),
-                    validator: (v) => (v == null || v.trim().isEmpty) ? 'Champ requis' : null,
-                  ),
-                  const SizedBox(height: 10),
-                  TextFormField(
-                    controller: _emailCtrl,
-                    keyboardType: TextInputType.emailAddress,
-                    decoration: const InputDecoration(
-                      labelText: 'E-mail (optionnel)',
-                      prefixIcon: Icon(Icons.email_outlined),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  quartiersAsync.when(
-                    loading: () => const LinearProgressIndicator(),
-                    error: (err, _) => Text(err.toString()),
-                    data: (quartiers) => DropdownButtonFormField<Quartier>(
-                      initialValue: _quartierLivraison,
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: _descriptionCtrl,
+                      maxLines: 2,
                       decoration: const InputDecoration(
-                        labelText: 'Quartier de livraison',
-                        prefixIcon: Icon(Icons.location_city),
+                        labelText: 'Que contient le colis ?',
+                        alignLabelWithHint: true,
                       ),
-                      items: quartiers
-                          .map((q) => DropdownMenuItem(
-                                value: q,
-                                child: Text('${q.nom} · ${formatFcfa(q.tarifLivraison)}'),
-                              ))
-                          .toList(),
-                      onChanged: (v) => setState(() => _quartierLivraison = v),
+                      validator: (v) => (v == null || v.trim().isEmpty) ? 'Champ requis' : null,
                     ),
-                  ),
-                  const SizedBox(height: 10),
-                  TextFormField(
-                    controller: _destinataireAdresseCtrl,
-                    decoration: InputDecoration(
-                      labelText: isEnvoi ? 'Adresse précise du destinataire' : 'Votre adresse précise',
-                      prefixIcon: const Icon(Icons.place_outlined),
-                    ),
-                    validator: (v) => (v == null || v.trim().isEmpty) ? 'Champ requis' : null,
-                  ),
-                  if (!isEnvoi) ...[
                     const SizedBox(height: 10),
-                    _buildGpsWidget(),
-                  ],
-                ],
-              ),
-            ),
-          ),
-
-          const SizedBox(height: 16),
-
-          // Section 3: Article / Colis
-          Card(
-            elevation: 0,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-              side: BorderSide(color: Colors.grey.shade300),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: const [
-                      Icon(Icons.inventory_2_outlined, color: AppColors.primary, size: 22),
-                      SizedBox(width: 8),
-                      Text(
-                        "📦 Détails du Colis",
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                          color: AppColors.primary,
-                        ),
+                    TextFormField(
+                      controller: _valeurColisCtrl,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(
+                        labelText: 'Valeur approximative du colis (FCFA)',
+                        prefixIcon: Icon(Icons.payments_outlined),
+                        suffixText: 'FCFA',
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    controller: _descriptionCtrl,
-                    maxLines: 2,
-                    decoration: const InputDecoration(
-                      labelText: 'Décrivez l\'article à livrer (ex: Sac de vêtements, Clés, Documents...)',
-                      alignLabelWithHint: true,
                     ),
-                    validator: (v) => (v == null || v.trim().isEmpty) ? 'Champ requis' : null,
-                  ),
-                  const SizedBox(height: 10),
-                  TextFormField(
-                    controller: _prixColisCtrl,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: 'Prix de la marchandise à encaisser (optionnel)',
-                      hintText: 'Saisissez 0 si l\'article est déjà payé',
-                      prefixIcon: Icon(Icons.payments_outlined),
-                      suffixText: 'FCFA',
+                    const SizedBox(height: 10),
+                    TextFormField(
+                      controller: _instructionsCtrl,
+                      decoration: const InputDecoration(
+                        labelText: 'Instructions particulières',
+                        prefixIcon: Icon(Icons.note_alt_outlined),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
-          ),
 
+            const SizedBox(height: 20),
 
+            // Bouton Particulier
+            SizedBox(
+              height: 52,
+              child: ElevatedButton.icon(
+                onPressed: _submitting ? null : _submit,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                icon: _submitting
+                    ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                    : const Icon(Icons.send_rounded, color: Colors.white),
+                label: Text(
+                  _submitting ? 'Traitement...' : 'DEMANDER LA LIVRAISON',
+                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white),
+                ),
+              ),
+            ),
+          ],
 
           const SizedBox(height: 24),
-
-          // Submit Button
-          SizedBox(
-            height: 50,
-            child: ElevatedButton.icon(
-              onPressed: _submitting ? null : _submit,
-              icon: _submitting
-                  ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                  : const Icon(Icons.send_rounded),
-              label: Text(
-                _submitting ? 'Traitement...' : 'Soumettre ma demande de livraison',
-                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+        ],
+      ),
+    );
+  }ntWeight.bold),
               ),
             ),
           ),
