@@ -351,7 +351,7 @@ class _NouvelleCommandeParticulierTabState
           // 1. Title: Que souhaitez-vous faire ?
           const Text(
             'Que souhaitez-vous faire ?',
-            style: TextStyle(fontWeight: FontWeight.extrabold, fontSize: 16, color: AppColors.navy),
+            style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16, color: AppColors.navy),
           ),
           const SizedBox(height: 10),
 
@@ -614,7 +614,12 @@ class _NouvelleCommandeParticulierTabState
                           ],
                         ),
                       ),
-              // ==========================================
+                    ),
+                  ),
+                ],
+              ),
+
+          // ==========================================
           // 1. FORMULAIRE E-COMMERÇANT
           // ==========================================
           if (_typeUser == 'e-commercant') ...[
