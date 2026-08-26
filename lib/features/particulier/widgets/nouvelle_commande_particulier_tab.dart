@@ -193,6 +193,12 @@ class _NouvelleCommandeParticulierTabState
           );
 
       if (!mounted) return;
+      
+      // Force refresh of the partners list so the newly auto-created partner appears
+      if (_typeUser == 'e-commercant') {
+        ref.invalidate(partenairesProvider);
+      }
+      
       _resetForm();
 
       await showDialog(

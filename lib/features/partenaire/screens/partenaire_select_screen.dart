@@ -111,24 +111,31 @@ class _PartenaireSelectScreenState extends ConsumerState<PartenaireSelectScreen>
                     ),
                   );
                 }
-                return ListView.separated(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  itemCount: filtered.length,
-                  separatorBuilder: (_, __) => const Divider(height: 1, color: Color(0xFFE2E8F0)),
-                  itemBuilder: (context, index) {
-                    final Partenaire partenaire = filtered[index];
-                    return ListTile(
-                      contentPadding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
-                      leading: const CircleAvatar(
-                        backgroundColor: AppColors.navy,
-                        child: Icon(Icons.storefront, color: Colors.white, size: 20),
-                      ),
-                      title: Text(partenaire.nom, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: AppColors.navy)),
-                      subtitle: Text(partenaire.telephone, style: const TextStyle(color: Color(0xFF64748B), fontSize: 13)),
-                      trailing: const Icon(Icons.chevron_right_rounded, color: AppColors.primary),
-                      onTap: () => context.go('/partenaire/home', extra: partenaire),
-                    );
+                return RefreshIndicator(
+                  color: AppColors.primary,
+                  onRefresh: () async {
+                    ref.invalidate(partenairesProvider);
+                    await ref.read(partenairesProvider.future);
                   },
+                  child: ListView.separated(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    itemCount: filtered.length,
+                    separatorBuilder: (_, __) => const Divider(height: 1, color: Color(0xFFE2E8F0)),
+                    itemBuilder: (context, index) {
+                      final Partenaire partenaire = filtered[index];
+                      return ListTile(
+                        contentPadding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+                        leading: const CircleAvatar(
+                          backgroundColor: AppColors.navy,
+                          child: Icon(Icons.storefront, color: Colors.white, size: 20),
+                        ),
+                        title: Text(partenaire.nom, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: AppColors.navy)),
+                        subtitle: Text(partenaire.telephone, style: const TextStyle(color: Color(0xFF64748B), fontSize: 13)),
+                        trailing: const Icon(Icons.chevron_right_rounded, color: AppColors.primary),
+                        onTap: () => context.go('/partenaire/home', extra: partenaire),
+                      );
+                    },
+                  ),
                 );
               },
             ),
