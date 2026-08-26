@@ -340,6 +340,7 @@ class _NouvelleCommandePartenaireTabState
             loading: () => const LinearProgressIndicator(),
             error: (err, _) => Text(err.toString()),
             data: (quartiers) => DropdownButtonFormField<Quartier>(
+              isExpanded: true,
               initialValue: _quartier,
               decoration: const InputDecoration(labelText: 'Quartier de livraison'),
               items: quartiers

@@ -861,6 +861,7 @@ class _NouvelleCommandeParticulierTabState
                       loading: () => const LinearProgressIndicator(),
                       error: (err, _) => Text(err.toString()),
                       data: (quartiers) => DropdownButtonFormField<Quartier>(
+                        isExpanded: true,
                         initialValue: _quartierLivraison,
                         decoration: const InputDecoration(
                           labelText: 'Quartier du client',
@@ -1147,6 +1148,7 @@ class _NouvelleCommandeParticulierTabState
                       loading: () => const LinearProgressIndicator(),
                       error: (err, _) => Text(err.toString()),
                       data: (quartiers) => DropdownButtonFormField<Quartier>(
+                        isExpanded: true,
                         initialValue: _quartierLivraison,
                         decoration: const InputDecoration(
                           labelText: 'Quartier de livraison',
