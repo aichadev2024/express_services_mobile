@@ -64,7 +64,7 @@ class _VitrineScreenState extends ConsumerState<VitrineScreen> with SingleTicker
             // 1. Hero Showcase Header Banner
             _buildHeroBanner(context),
 
-            // 2. Interactive Navigation Tabs (Calculateur, Suivi, Commander)
+            // 2. Interactive Navigation Tabs (Demander une livraison, Suivi, Tarifs)
             Container(
               color: Colors.white,
               child: TabBar(
@@ -76,22 +76,22 @@ class _VitrineScreenState extends ConsumerState<VitrineScreen> with SingleTicker
                 indicatorWeight: 3,
                 labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                 tabs: const [
-                  Tab(icon: Icon(Icons.calculate_outlined, size: 20), text: 'Tarifs par Quartier'),
-                  Tab(icon: Icon(Icons.search_rounded, size: 20), text: 'Suivi de Colis'),
                   Tab(icon: Icon(Icons.add_shopping_cart_rounded, size: 20), text: 'Demander une Livraison'),
+                  Tab(icon: Icon(Icons.search_rounded, size: 20), text: 'Suivi de Colis'),
+                  Tab(icon: Icon(Icons.calculate_outlined, size: 20), text: 'Tarifs par Quartier'),
                 ],
               ),
             ),
 
             // TabBar Views
             SizedBox(
-              height: 480,
+              height: 520,
               child: TabBarView(
                 controller: _tabController,
                 children: [
-                  _buildCalculateurTarifTab(context),
-                  const SuiviParticulierTab(),
                   const NouvelleCommandeParticulierTab(),
+                  const SuiviParticulierTab(),
+                  _buildCalculateurTarifTab(context),
                 ],
               ),
             ),
@@ -144,48 +144,51 @@ class _VitrineScreenState extends ConsumerState<VitrineScreen> with SingleTicker
           const SizedBox(height: 12),
           RichText(
             text: const TextSpan(
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: Colors.white, height: 1.2),
+              style: TextStyle(fontSize: 21, fontWeight: FontWeight.w800, color: Colors.white, height: 1.25),
               children: [
-                TextSpan(text: 'Votre solution de '),
-                TextSpan(text: 'Livraison Rapide ', style: TextStyle(color: Color(0xFFE11D48))),
-                TextSpan(text: '& Logistique Fiable'),
+                TextSpan(text: 'La logistique des '),
+                TextSpan(text: 'E-commerçants ', style: TextStyle(color: Color(0xFFE11D48))),
+                TextSpan(text: 'à Bamako'),
               ],
             ),
           ),
           const SizedBox(height: 8),
           const Text(
-            'Expédiez vos colis rapidement, suivez-les en temps réel et profitez des meilleurs tarifs à Bamako et partout au Mali.',
-            style: TextStyle(color: Color(0xFF94A3B8), fontSize: 13, height: 1.4),
+            'Confiez-nous vos livraisons et concentrez-vous sur vos ventes. EXPRESS SERVICES prend en charge vos commandes, vos colis et leur livraison jusqu’au client.',
+            style: TextStyle(color: Color(0xFF94A3B8), fontSize: 12.5, height: 1.4),
           ),
           const SizedBox(height: 16),
 
-          // Key Highlights Row
-          Row(
-            children: [
-              Expanded(
-                child: _buildHeroStatCard(
-                  icon: Icons.speed,
-                  title: 'Livraison H+3',
-                  subtitle: 'Livraison ultra-rapide',
+          // 4 Key Highlight Cards Scrollable / Grid
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                _buildHeroStatCard(
+                  icon: Icons.inventory_2_outlined,
+                  title: 'Gestion des commandes',
+                  subtitle: 'Centralisez vos livraisons',
                 ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: _buildHeroStatCard(
-                  icon: Icons.map,
-                  title: '100% Bamako & Régions',
-                  subtitle: 'Tous les quartiers',
+                const SizedBox(width: 10),
+                _buildHeroStatCard(
+                  icon: Icons.local_shipping_outlined,
+                  title: 'Livraison',
+                  subtitle: 'Vos commandes livrées',
                 ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: _buildHeroStatCard(
-                  icon: Icons.verified_user_outlined,
-                  title: 'Colis Sécurisé',
-                  subtitle: 'Code OTP de remise',
+                const SizedBox(width: 10),
+                _buildHeroStatCard(
+                  icon: Icons.payments_outlined,
+                  title: 'Encaissement',
+                  subtitle: 'Paiements à la livraison',
                 ),
-              ),
-            ],
+                const SizedBox(width: 10),
+                _buildHeroStatCard(
+                  icon: Icons.bar_chart_rounded,
+                  title: '📊 Suivi',
+                  subtitle: 'Activité en temps réel',
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -194,7 +197,8 @@ class _VitrineScreenState extends ConsumerState<VitrineScreen> with SingleTicker
 
   Widget _buildHeroStatCard({required IconData icon, required String title, required String subtitle}) {
     return Container(
-      padding: const EdgeInsets.all(10),
+      width: 135,
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.06),
         borderRadius: BorderRadius.circular(12),
@@ -204,9 +208,9 @@ class _VitrineScreenState extends ConsumerState<VitrineScreen> with SingleTicker
         children: [
           Icon(icon, color: AppColors.primary, size: 20),
           const SizedBox(height: 6),
-          Text(title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11), textAlign: TextAlign.center),
+          Text(title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 10.5), textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis),
           const SizedBox(height: 2),
-          Text(subtitle, style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 9.5), textAlign: TextAlign.center),
+          Text(subtitle, style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 9), textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis),
         ],
       ),
     );
