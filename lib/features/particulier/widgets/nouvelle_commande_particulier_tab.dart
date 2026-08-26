@@ -196,7 +196,7 @@ class _NouvelleCommandeParticulierTabState
         context: context,
         builder: (context) => AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: const Row(
+          title: Row(
             children: [
               Icon(Icons.check_circle, color: AppColors.success, size: 28),
               SizedBox(width: 10),
@@ -1249,14 +1249,6 @@ class _NouvelleCommandeParticulierTabState
             ),
           ],
 
-          const SizedBox(height: 24),
-        ],
-      ),
-    );
-  }ntWeight.bold),
-              ),
-            ),
-          ),
           const SizedBox(height: 24),
         ],
       ),
