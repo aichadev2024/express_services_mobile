@@ -24,6 +24,7 @@ class CommandeRequest {
   final String? nomExpediteur;
   final String? telephoneExpediteur;
   final String? adresseExpediteur;
+  final double? montantMarchandises;
 
   const CommandeRequest({
     required this.nomClient,
@@ -41,6 +42,7 @@ class CommandeRequest {
     this.nomExpediteur,
     this.telephoneExpediteur,
     this.adresseExpediteur,
+    this.montantMarchandises,
   });
 
   Map<String, dynamic> toJson() => {
@@ -61,6 +63,7 @@ class CommandeRequest {
         if (nomExpediteur != null && nomExpediteur!.isNotEmpty) 'nomExpediteur': nomExpediteur,
         if (telephoneExpediteur != null && telephoneExpediteur!.isNotEmpty) 'telephoneExpediteur': telephoneExpediteur,
         if (adresseExpediteur != null && adresseExpediteur!.isNotEmpty) 'adresseExpediteur': adresseExpediteur,
+        if (montantMarchandises != null) 'montantMarchandises': montantMarchandises,
       };
 }
 

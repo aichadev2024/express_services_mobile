@@ -150,8 +150,10 @@ class _NouvelleCommandeParticulierTabState
       final telFinal = _destinataireTelCtrl.text.trim();
 
       String fullDescription = '';
+      double montantMarchandiseValue = 0.0;
       if (isEcommercant) {
         final double montantCmd = double.tryParse(_montantCommandeCtrl.text.trim()) ?? 0.0;
+        montantMarchandiseValue = montantCmd;
         final double totalAEncaisser = _modePaiement == 'livraison'
             ? (montantCmd + _quartierLivraison!.tarifLivraison)
             : _quartierLivraison!.tarifLivraison;
@@ -167,6 +169,9 @@ class _NouvelleCommandeParticulierTabState
             "💵 TOTAL À ENCAISSER: ${formatFcfa(totalAEncaisser)}";
       } else {
         final double valColis = double.tryParse(_valeurColisCtrl.text.trim()) ?? 0.0;
+        if (!isEnvoi) {
+            montantMarchandiseValue = valColis;
+        }
         fullDescription =
             "[MODE: ${isEnvoi ? 'ENVOI DE COLIS' : 'RÉCUPÉRATION DE COLIS'}]\n"
             "📦 CONTENU: ${_descriptionCtrl.text.trim()}\n"
@@ -189,6 +194,7 @@ class _NouvelleCommandeParticulierTabState
               nomExpediteur: _typeUser == 'e-commercant' || !isEnvoi ? _expediteurNomCtrl.text.trim() : null,
               telephoneExpediteur: _typeUser == 'e-commercant' || !isEnvoi ? _expediteurTelCtrl.text.trim() : null,
               adresseExpediteur: _typeUser == 'e-commercant' || !isEnvoi ? _expediteurAdresseCtrl.text.trim() : null,
+              montantMarchandises: (_typeUser == 'e-commercant' || !isEnvoi) && montantMarchandiseValue > 0 ? montantMarchandiseValue : null,
             ),
           );
 
