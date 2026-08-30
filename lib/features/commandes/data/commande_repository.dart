@@ -128,6 +128,17 @@ class CommandeRepository {
     }
   }
 
+  Future<Commande> changerQuartier(int id, int quartierId) async {
+    try {
+      final response = await _dio.put('/api/commandes/$id/quartier', data: {
+        'quartierId': quartierId,
+      });
+      return Commande.fromJson(response.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      throw toApiException(e);
+    }
+  }
+
   Future<String> getWhatsAppLink(int id) async {
     try {
       final response = await _dio.get('/api/commandes/$id/whatsapp');

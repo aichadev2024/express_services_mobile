@@ -7,8 +7,9 @@ import '../../../models/commande.dart';
 class CommandeCard extends StatelessWidget {
   final Commande commande;
   final VoidCallback? onTap;
+  final VoidCallback? onEditQuartier;
 
-  const CommandeCard({super.key, required this.commande, this.onTap});
+  const CommandeCard({super.key, required this.commande, this.onTap, this.onEditQuartier});
 
   @override
   Widget build(BuildContext context) {
@@ -91,6 +92,15 @@ class CommandeCard extends StatelessWidget {
                           style: const TextStyle(color: Color(0xFF64748B), fontSize: 13),
                           overflow: TextOverflow.ellipsis),
                     ),
+                    if (onEditQuartier != null)
+                      InkWell(
+                        onTap: onEditQuartier,
+                        borderRadius: BorderRadius.circular(20),
+                        child: const Padding(
+                          padding: EdgeInsets.all(4.0),
+                          child: Icon(Icons.edit, size: 14, color: AppColors.primary),
+                        ),
+                      ),
                   ],
                 ),
               ],

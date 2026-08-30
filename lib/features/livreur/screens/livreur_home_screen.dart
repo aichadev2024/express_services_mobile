@@ -10,7 +10,9 @@ import '../../../core/theme/app_theme.dart';
 import '../../../models/commande.dart';
 import '../../../models/statut_commande.dart';
 import '../../auth/providers/auth_provider.dart';
+import '../../commandes/providers/commande_providers.dart';
 import '../../commandes/widgets/commande_card.dart';
+import '../../partenaire/providers/reference_data_providers.dart';
 import '../providers/livreur_providers.dart';
 
 class LivreurHomeScreen extends ConsumerStatefulWidget {
@@ -313,6 +315,7 @@ class _LivreurHomeScreenState extends ConsumerState<LivreurHomeScreen> {
                         return CommandeCard(
                           commande: commande,
                           onTap: () => context.push('/livreur/commande/${commande.id}'),
+                          onEditQuartier: () => _editQuartier(context, ref, commande),
                         );
                       },
                     ),
@@ -324,6 +327,63 @@ class _LivreurHomeScreenState extends ConsumerState<LivreurHomeScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _editQuartier(BuildContext context, WidgetRef ref, Commande commande) async {
+    try {
+      final quartiers = await ref.read(referenceDataRepositoryProvider).getQuartiers();
+      if (!context.mounted) return;
+
+      int? selectedQuartierId = commande.quartierId > 0 ? commande.quartierId : null;
+
+      final newQuartierId = await showDialog<int>(
+        context: context,
+        builder: (ctx) {
+          return AlertDialog(
+            title: const Text('Modifier le Quartier', style: TextStyle(color: AppColors.navy, fontWeight: FontWeight.bold, fontSize: 16)),
+            content: StatefulBuilder(
+              builder: (context, setState) {
+                return DropdownButton<int>(
+                  isExpanded: true,
+                  value: selectedQuartierId,
+                  hint: const Text('Sélectionner un quartier'),
+                  items: quartiers.map((q) => DropdownMenuItem(
+                    value: q.id,
+                    child: Text('${q.nom} · ${q.tarifLivraison.toInt()} FCFA'),
+                  )).toList(),
+                  onChanged: (val) => setState(() => selectedQuartierId = val),
+                );
+              }
+            ),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Annuler')),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white),
+                onPressed: () => Navigator.pop(ctx, selectedQuartierId),
+                child: const Text('Enregistrer')
+              )
+            ],
+          );
+        }
+      );
+
+      if (newQuartierId != null && newQuartierId != commande.quartierId) {
+        if (!context.mounted) return;
+        showDialog(context: context, barrierDismissible: false, builder: (_) => const Center(child: CircularProgressIndicator(color: AppColors.primary)));
+        
+        await ref.read(commandeRepositoryProvider).changerQuartier(commande.id, newQuartierId);
+        
+        if (!context.mounted) return;
+        Navigator.pop(context); // Close loading
+        ref.invalidate(livreurCommandesProvider); // Refresh list
+        
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Quartier modifié avec succès', style: TextStyle(color: Colors.white)), backgroundColor: AppColors.success));
+      }
+    } catch (e) {
+      if (!context.mounted) return;
+      if (Navigator.canPop(context)) Navigator.pop(context); // Close possibly opened dialog
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erreur: $e'), backgroundColor: AppColors.danger));
+    }
   }
 
   Widget _buildStatsRow(List<Commande> commandes) {
