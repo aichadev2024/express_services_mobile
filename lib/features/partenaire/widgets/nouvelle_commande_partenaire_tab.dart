@@ -34,7 +34,7 @@ class _NouvelleCommandePartenaireTabState
   Quartier? _quartier;
   double? _lat;
   double? _lng;
-  bool _livraisonGratuite = false;
+  late bool _livraisonGratuite = widget.partenaire.livraisonGratuite;
   bool _locating = false;
   bool _submitting = false;
 
@@ -162,7 +162,7 @@ class _NouvelleCommandePartenaireTabState
       _quartier = null;
       _lat = null;
       _lng = null;
-      _livraisonGratuite = false;
+      _livraisonGratuite = widget.partenaire.livraisonGratuite;
     });
   }
 
