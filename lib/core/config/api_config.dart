@@ -2,7 +2,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 
 class ApiConfig {
-  static const String _productionUrl = 'https://express-services-backend.onrender.com';
+  static const String _productionUrl = 'https://api.express-services-mali.com';
 
   static String get baseUrl => _productionUrl;
 
